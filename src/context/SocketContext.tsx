@@ -1,5 +1,4 @@
-// context/SocketContext.tsx
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Emergency } from '../types';
 
@@ -11,28 +10,44 @@ interface SocketContextType {
 const SocketContext = createContext<SocketContextType>({ socket: null, liveEmergencies: [] });
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [liveEmergencies, setLiveEmergencies] = useState<Emergency[]>([]);
 
   useEffect(() => {
-    const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
-    socketRef.current = io(SOCKET_URL);
+    // Always use port 5000 directly — no string manipulation needed
+    const SOCKET_URL = 'http://localhost:5000';
 
-    socketRef.current.on('new_emergency', ({ emergency }: { emergency: Emergency }) => {
+    const s = io(SOCKET_URL, { reconnectionAttempts: 5 });
+
+    s.on('connect', () => {
+      console.log('✅ Socket connected:', s.id);
+      setSocket(s);
+    });
+
+    s.on('connect_error', (err) => {
+      console.warn('Socket connection error:', err.message);
+    });
+
+    s.on('disconnect', () => {
+      console.log('Socket disconnected');
+      setSocket(null);
+    });
+
+    s.on('new_emergency', ({ emergency }: { emergency: Emergency }) => {
       setLiveEmergencies(prev => [emergency, ...prev]);
     });
 
-    socketRef.current.on('emergency_updated', (updated: Emergency) => {
+    s.on('emergency_updated', (updated: Emergency) => {
       setLiveEmergencies(prev =>
         prev.map(e => (e.id === updated.id ? updated : e))
       );
     });
 
-    return () => { socketRef.current?.disconnect(); };
+    return () => { s.disconnect(); };
   }, []);
 
   return (
-    <SocketContext.Provider value={{ socket: socketRef.current, liveEmergencies }}>
+    <SocketContext.Provider value={{ socket, liveEmergencies }}>
       {children}
     </SocketContext.Provider>
   );

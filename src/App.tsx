@@ -1,39 +1,55 @@
-// App.tsx
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { SocketProvider } from './context/SocketContext';
-import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import Sidebar from './components/shared/Sidebar';
-import ReportEmergencyForm from './components/emergency/ReportEmergencyForm';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { SocketProvider } from './context/SocketContext'
+import Sidebar from './components/shared/Sidebar'
+import Navbar from './components/shared/Navbar'
+import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import DashboardPage from './pages/DashboardPage'
+import EmergenciesPage from './pages/EmergenciesPage'
+import ResourcesPage from './pages/ResourcesPage'
+import AlertsPage from './pages/AlertsPage'
+import NotificationsPage from './pages/NotificationsPage'
 
-// Protected layout
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
+  const { user } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
   return (
-    <div className="flex h-screen bg-gray-950">
+    <div className="flex h-screen bg-gray-950 overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">{children}</main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Navbar />
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
+
     </div>
-  );
+  )
 }
 
 function AppRoutes() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuth()
   if (isLoading) return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-      <div className="text-white text-lg animate-pulse">Loading SafeNet...</div>
+      <div className="flex items-center gap-3">
+        <div className="w-6 h-6 border-2 border-gray-700 border-t-red-500 rounded-full animate-spin" />
+        <span className="text-gray-400">Loading SafeNet...</span>
+      </div>
     </div>
-  );
+  )
   return (
     <Routes>
+      <Route path="/" element={<HomePage />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
+      <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} />
       <Route path="/dashboard" element={<AppLayout><DashboardPage /></AppLayout>} />
-      <Route path="/report" element={<AppLayout><div className="p-6"><ReportEmergencyForm /></div></AppLayout>} />
-      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} />} />
+      <Route path="/emergencies" element={<AppLayout><EmergenciesPage /></AppLayout>} />
+      <Route path="/resources" element={<AppLayout><ResourcesPage /></AppLayout>} />
+      <Route path="/alerts" element={<AppLayout><AlertsPage /></AppLayout>} />
+      <Route path="/notifications" element={<AppLayout><NotificationsPage /></AppLayout>} />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
-  );
+  )
 }
 
 export default function App() {
@@ -45,5 +61,5 @@ export default function App() {
         </SocketProvider>
       </AuthProvider>
     </BrowserRouter>
-  );
+  )
 }

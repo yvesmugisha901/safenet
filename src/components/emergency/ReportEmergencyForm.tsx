@@ -4,12 +4,12 @@ import { emergencyAPI } from '../../services/api';
 import { EmergencyType } from '../../types';
 
 const EMERGENCY_TYPES: { value: EmergencyType; label: string; icon: string }[] = [
-  { value: 'medical',  label: 'Medical',  icon: '🏥' },
-  { value: 'fire',     label: 'Fire',     icon: '🔥' },
-  { value: 'flood',    label: 'Flood',    icon: '🌊' },
+  { value: 'medical', label: 'Medical', icon: '🏥' },
+  { value: 'fire', label: 'Fire', icon: '🔥' },
+  { value: 'flood', label: 'Flood', icon: '🌊' },
   { value: 'accident', label: 'Accident', icon: '🚗' },
-  { value: 'crime',    label: 'Crime',    icon: '🚨' },
-  { value: 'other',    label: 'Other',    icon: '⚠️' },
+  { value: 'crime', label: 'Crime', icon: '🚨' },
+  { value: 'other', label: 'Other', icon: '⚠️' },
 ];
 
 interface Props { onSuccess?: () => void; }
