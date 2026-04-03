@@ -112,10 +112,7 @@ export default function HomePage() {
             {/* ── HERO ── */}
             <section className="relative px-6 lg:px-12 pt-20 pb-24 max-w-6xl mx-auto">
                 {/* Live badge */}
-                <div className="fade-up inline-flex items-center gap-2 bg-red-50 border border-red-100 text-red-600 text-xs font-semibold px-4 py-2 rounded-full mb-8">
-                    <span className="w-2 h-2 bg-red-500 rounded-full" style={{ animation: 'pulse-dot 1.5s infinite' }} />
-                    Available 24/7 across your community
-                </div>
+
 
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
                     <div>
