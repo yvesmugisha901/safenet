@@ -1,12 +1,9 @@
-// services/api.ts – Central Axios-like fetch wrapper
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-const getToken = () => localStorage.getItem('safenet_token');
+const getToken = () => localStorage.getItem('safenet_token')
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
-
+  const token = getToken()
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
     headers: {
@@ -14,49 +11,46 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
-  });
-
+  })
   if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.error || 'Request failed');
+    const err = await response.json().catch(() => ({ error: 'Request failed' }))
+    throw new Error(err.error || 'Request failed')
   }
-  return response.json();
+  return response.json()
 }
 
 // ── Auth ──────────────────────────────────────────────────────
 export const authAPI = {
-  register: (data: any) =>
-    request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
-  login: (data: any) =>
-    request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+  register: (data: any) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  login: (data: any) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   getMe: () => request('/auth/me'),
-};
+  getAllUsers: () => request('/auth/users'),
+  updateUserRole: (id: string, role: string) => request(`/auth/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
+}
 
 // ── Emergencies ───────────────────────────────────────────────
 export const emergencyAPI = {
-  report: (data: any) =>
-    request('/emergencies', { method: 'POST', body: JSON.stringify(data) }),
+  report: (data: any) => request('/emergencies', { method: 'POST', body: JSON.stringify(data) }),
   list: () => request('/emergencies'),
-  updateStatus: (id: string, status: string) =>
-    request(`/emergencies/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    }),
+  getById: (id: string) => request(`/emergencies/${id}`),
+  updateStatus: (id: string, status: string) => request(`/emergencies/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   getStats: () => request('/emergencies/stats'),
-};
+}
 
 // ── Resources ─────────────────────────────────────────────────
 export const resourceAPI = {
   list: () => request('/resources'),
-  create: (data: any) =>
-    request('/resources', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: any) =>
-    request(`/resources/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-};
+  getById: (id: string) => request(`/resources/${id}`),
+  nearby: (lat: number, lng: number, radius = 10) => request(`/resources/nearby?lat=${lat}&lng=${lng}&radius=${radius}`),
+  create: (data: any) => request('/resources', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: any) => request(`/resources/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: string) => request(`/resources/${id}`, { method: 'DELETE' }),
+}
 
 // ── Notifications ─────────────────────────────────────────────
 export const notificationAPI = {
   list: () => request('/notifications'),
-  markRead: (id: string) =>
-    request(`/notifications/${id}/read`, { method: 'PATCH' }),
-};
+  unreadCount: () => request('/notifications/unread'),
+  markRead: (id: string) => request(`/notifications/${id}/read`, { method: 'PATCH' }),
+  markAllRead: () => request('/notifications/read-all', { method: 'PATCH' }),
+}
