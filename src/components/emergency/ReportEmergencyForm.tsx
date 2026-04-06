@@ -1,174 +1,154 @@
-// components/emergency/ReportEmergencyForm.tsx
-import { useState } from 'react';
-import { emergencyAPI } from '../../services/api';
-import { EmergencyType } from '../../types';
+import { useState } from 'react'
+import { emergencyAPI } from '../../services/api'
+import { EmergencyType } from '../../types'
+import { getCurrentLocation } from '../../utils/geo'
 
-const EMERGENCY_TYPES: { value: EmergencyType; label: string; icon: string }[] = [
+const TYPES: { value: EmergencyType; label: string; icon: string }[] = [
   { value: 'medical', label: 'Medical', icon: '🏥' },
   { value: 'fire', label: 'Fire', icon: '🔥' },
   { value: 'flood', label: 'Flood', icon: '🌊' },
   { value: 'accident', label: 'Accident', icon: '🚗' },
   { value: 'crime', label: 'Crime', icon: '🚨' },
   { value: 'other', label: 'Other', icon: '⚠️' },
-];
+]
 
-interface Props { onSuccess?: () => void; }
+interface Props { onSuccess?: () => void }
 
 export default function ReportEmergencyForm({ onSuccess }: Props) {
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    type: 'medical' as EmergencyType,
-    latitude: '',
-    longitude: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [type, setType] = useState<EmergencyType>('medical')
+  const [title, setTitle] = useState('')
+  const [desc, setDesc] = useState('')
+  const [lat, setLat] = useState('')
+  const [lng, setLng] = useState('')
+  const [locating, setLocating] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [done, setDone] = useState(false)
 
-  // Get current GPS location
-  const getLocation = () => {
-    navigator.geolocation.getCurrentPosition(
-      pos => setForm(f => ({
-        ...f,
-        latitude: String(pos.coords.latitude),
-        longitude: String(pos.coords.longitude),
-      })),
-      () => setError('Could not get your location. Please enter manually.')
-    );
-  };
+  const getLocation = async () => {
+    setLocating(true)
+    setError('')
+    try {
+      const pos = await getCurrentLocation()
+      setLat(String(pos.lat))
+      setLng(String(pos.lng))
+    } catch {
+      setError('Could not detect location. Enter manually below.')
+    } finally {
+      setLocating(false)
+    }
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  const submit = async () => {
+    if (!title.trim()) { setError('Please enter a title.'); return }
+    if (!lat || !lng) { setError('Please provide your location.'); return }
+    setError('')
+    setLoading(true)
     try {
       await emergencyAPI.report({
-        ...form,
-        latitude: parseFloat(form.latitude),
-        longitude: parseFloat(form.longitude),
-      });
-      setSuccess(true);
-      onSuccess?.();
+        title: title.trim(),
+        description: desc.trim(),
+        type,
+        latitude: parseFloat(lat),
+        longitude: parseFloat(lng),
+      })
+      setDone(true)
+      onSuccess?.()
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to submit. Try again.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  if (success) {
+  if (done) {
     return (
-      <div className="text-center py-10">
-        <div className="text-5xl mb-4">✅</div>
-        <h3 className="text-white text-xl font-bold">Emergency Reported!</h3>
-        <p className="text-gray-400 mt-2">Nearby resources have been alerted automatically.</p>
+      <div className="text-center py-4">
+        <div className="text-5xl mb-3">✅</div>
+        <p className="text-white font-bold text-lg">Report sent!</p>
+        <p className="text-gray-400 text-sm mt-1 mb-5">Nearby resource managers have been alerted.</p>
         <button
-          onClick={() => setSuccess(false)}
-          className="mt-6 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg"
-        >
-          Report Another
+          onClick={() => { setDone(false); setTitle(''); setDesc(''); setLat(''); setLng('') }}
+          className="text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 px-5 py-2 rounded-lg">
+          Report another
         </button>
       </div>
-    );
+    )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
-      <h2 className="text-white text-xl font-bold">🚨 Report Emergency</h2>
+    <div className="space-y-4">
 
+      {/* Error */}
       {error && (
-        <div className="bg-red-900/40 border border-red-700 text-red-300 rounded-lg p-3 text-sm">
+        <div className="bg-red-900/40 border border-red-700 text-red-300 rounded-lg px-4 py-2.5 text-sm">
           {error}
         </div>
       )}
 
-      {/* Emergency Type */}
-      <div>
-        <label className="text-gray-400 text-sm block mb-2">Emergency Type</label>
-        <div className="grid grid-cols-3 gap-2">
-          {EMERGENCY_TYPES.map(t => (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setForm(f => ({ ...f, type: t.value }))}
-              className={`p-3 rounded-lg border text-sm font-medium transition-all
-                ${form.type === t.value
-                  ? 'border-red-500 bg-red-900/30 text-white'
-                  : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-500'}`}
-            >
-              <span className="block text-xl mb-1">{t.icon}</span>
-              {t.label}
-            </button>
-          ))}
-        </div>
+      {/* Type pills */}
+      <div className="grid grid-cols-3 gap-2">
+        {TYPES.map(t => (
+          <button key={t.value} type="button"
+            onClick={() => setType(t.value)}
+            className={`py-2.5 rounded-xl border text-sm font-medium transition-all flex flex-col items-center gap-1 ${type === t.value
+              ? 'border-red-500 bg-red-900/30 text-white'
+              : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-500'
+              }`}>
+            <span className="text-xl">{t.icon}</span>
+            <span className="text-xs">{t.label}</span>
+          </button>
+        ))}
       </div>
 
       {/* Title */}
-      <div>
-        <label className="text-gray-400 text-sm block mb-1">Title</label>
-        <input
-          required
-          value={form.title}
-          onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white
-                     focus:outline-none focus:border-red-500"
-          placeholder="Brief description of the emergency"
-        />
-      </div>
+      <input
+        type="text"
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        placeholder="What happened? (required)"
+        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-500 text-sm"
+      />
 
       {/* Description */}
-      <div>
-        <label className="text-gray-400 text-sm block mb-1">Details</label>
-        <textarea
-          rows={3}
-          value={form.description}
-          onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white
-                     focus:outline-none focus:border-red-500 resize-none"
-          placeholder="Provide more details..."
-        />
-      </div>
+      <textarea
+        value={desc}
+        onChange={e => setDesc(e.target.value)}
+        placeholder="More details... (optional)"
+        rows={2}
+        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-500 text-sm resize-none"
+      />
 
       {/* Location */}
       <div>
-        <label className="text-gray-400 text-sm block mb-2">Location</label>
-        <button
-          type="button"
-          onClick={getLocation}
-          className="mb-3 w-full bg-gray-800 hover:bg-gray-700 border border-gray-700
-                     text-gray-300 rounded-lg px-4 py-2 text-sm flex items-center justify-center gap-2"
-        >
-          <span>📍</span> Use My Current Location
+        <button type="button" onClick={getLocation} disabled={locating}
+          className={`w-full py-2.5 rounded-xl border text-sm font-medium transition-all ${lat
+            ? 'border-green-600 bg-green-900/20 text-green-400'
+            : 'border-gray-600 bg-gray-800 text-gray-400 hover:border-gray-400'
+            }`}>
+          {locating ? '📍 Detecting...' : lat ? `📍 ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}` : '📍 Use my location'}
         </button>
-        <div className="grid grid-cols-2 gap-3">
-          <input
-            required
-            value={form.latitude}
-            onChange={e => setForm(f => ({ ...f, latitude: e.target.value }))}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white
-                       focus:outline-none focus:border-red-500"
-            placeholder="Latitude"
-          />
-          <input
-            required
-            value={form.longitude}
-            onChange={e => setForm(f => ({ ...f, longitude: e.target.value }))}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white
-                       focus:outline-none focus:border-red-500"
-            placeholder="Longitude"
-          />
-        </div>
+        {!lat && (
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <input type="number" value={lat} onChange={e => setLat(e.target.value)}
+              placeholder="Latitude"
+              className="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none focus:border-red-500" />
+            <input type="number" value={lng} onChange={e => setLng(e.target.value)}
+              placeholder="Longitude"
+              className="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none focus:border-red-500" />
+          </div>
+        )}
       </div>
 
+      {/* SUBMIT */}
       <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg
-                   transition-colors disabled:opacity-50 text-lg"
-      >
-        {loading ? 'Sending Alert...' : '🚨 Report Emergency'}
+        type="button"
+        onClick={submit}
+        disabled={loading || !title.trim()}
+        className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-base transition-colors">
+        {loading ? 'Sending...' : '🚨 Submit Emergency Report'}
       </button>
-    </form>
-  );
+
+    </div>
+  )
 }

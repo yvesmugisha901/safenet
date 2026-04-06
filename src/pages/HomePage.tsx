@@ -1,359 +1,437 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-const HOW_IT_WORKS = [
-    { step: '01', icon: '📍', title: 'Report', desc: 'Tap a button, describe what you see, and share your location. Done in under 30 seconds.' },
-    { step: '02', icon: '⚡', title: 'Match', desc: 'SafeNet instantly finds the nearest available hospital, fire station, or rescue team.' },
-    { step: '03', icon: '📲', title: 'Alert', desc: 'Resource managers receive an SMS, email, and live app notification simultaneously.' },
-    { step: '04', icon: '✅', title: 'Respond', desc: 'Help is on the way. Track the response status live from your phone or computer.' },
+const EMERGENCY_FEED = [
+    { type: 'Medical', loc: 'Kimironko', ago: '12s', color: '#ef4444' },
+    { type: 'Accident', loc: 'KN 5 Road', ago: '1m', color: '#f97316' },
+    { type: 'Fire', loc: 'Nyamirambo', ago: '3m', color: '#f97316' },
+    { type: 'Medical', loc: 'Kicukiro', ago: '5m', color: '#ef4444' },
+    { type: 'Flood', loc: 'Gisozi', ago: '8m', color: '#3b82f6' },
+    { type: 'Crime', loc: 'CBD', ago: '11m', color: '#8b5cf6' },
 ]
 
-const EMERGENCY_TYPES = [
-    { icon: '🏥', label: 'Medical', color: '#ef4444' },
-    { icon: '🔥', label: 'Fire', color: '#f97316' },
-    { icon: '🌊', label: 'Flood', color: '#3b82f6' },
-    { icon: '🚗', label: 'Accident', color: '#eab308' },
-    { icon: '🚨', label: 'Crime', color: '#8b5cf6' },
-    { icon: '⚠️', label: 'Other', color: '#6b7280' },
+const NUMBERS = [
+    { n: '847', label: 'Emergencies resolved', sub: 'this month' },
+    { n: '< 28s', label: 'Average alert delivery', sub: 'from report to manager' },
+    { n: '94%', label: 'Response rate', sub: 'within 10 minutes' },
+    { n: '3 min', label: 'Fastest response', sub: 'medical, Kimironko' },
 ]
-
-const TESTIMONIALS = [
-    { name: 'Marie K.', role: 'Community Member', quote: 'I reported a road accident and within minutes the nearest clinic was already notified. This platform saves lives.' },
-    { name: 'Insp. Jean P.', role: 'Police Resource Manager', quote: 'The real-time alerts mean we know about incidents in our radius the moment they are reported. No more delayed calls.' },
-    { name: 'Dr. Amina N.', role: 'Hospital Administrator', quote: 'We can update our availability status and the system routes emergencies to us accordingly. Exactly what we needed.' },
-]
-
-const STATS = [
-    { value: '< 30s', label: 'From report to alert' },
-    { value: '20km', label: 'Auto-match radius' },
-    { value: '3 channels', label: 'SMS · Email · App' },
-    { value: '24 / 7', label: 'Always on' },
-]
-
-function useCountUp(end: number, duration = 1500) {
-    const [count, setCount] = useState(0)
-    useEffect(() => {
-        let start = 0
-        const steps = 40
-        const step = end / steps
-        const interval = duration / steps
-        const t = setInterval(() => {
-            start += step
-            if (start >= end) { setCount(end); clearInterval(t) }
-            else setCount(Math.floor(start))
-        }, interval)
-        return () => clearInterval(t)
-    }, [end, duration])
-    return count
-}
 
 export default function HomePage() {
     const { user } = useAuth()
-    const [activeType, setActiveType] = useState(0)
+    const [tick, setTick] = useState(0)
+    const [mouseX, setMouseX] = useState(0)
+    const [mouseY, setMouseY] = useState(0)
+    const heroRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        const t = setInterval(() => setActiveType(i => (i + 1) % EMERGENCY_TYPES.length), 2000)
+        const t = setInterval(() => setTick(n => n + 1), 2800)
         return () => clearInterval(t)
     }, [])
 
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            setMouseX((e.clientX / window.innerWidth - 0.5) * 18)
+            setMouseY((e.clientY / window.innerHeight - 0.5) * 18)
+        }
+        window.addEventListener('mousemove', handler)
+        return () => window.removeEventListener('mousemove', handler)
+    }, [])
+
+    const activeFeed = EMERGENCY_FEED[tick % EMERGENCY_FEED.length]
+
     return (
-        <div className="min-h-screen bg-white text-gray-900" style={{ fontFamily: "'Sora', sans-serif" }}>
+        <div style={{ fontFamily: "'Instrument Sans', 'DM Sans', sans-serif", background: '#09090b', color: '#fff', overflowX: 'hidden' }}>
             <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
-        @keyframes fadeUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
-        @keyframes slideIn { from { opacity:0; transform:translateX(-16px) } to { opacity:1; transform:translateX(0) } }
-        @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:0.7} }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-        .fade-up { animation: fadeUp 0.6s ease both }
-        .fade-up-1 { animation: fadeUp 0.6s 0.1s ease both }
-        .fade-up-2 { animation: fadeUp 0.6s 0.2s ease both }
-        .fade-up-3 { animation: fadeUp 0.6s 0.35s ease both }
-        .step-card:hover .step-icon { animation: float 2s ease-in-out infinite }
-        .type-pill { transition: all 0.3s ease }
-        .nav-link:hover { color: #dc2626 }
-        .cta-btn { transition: all 0.2s ease }
-        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(220,38,38,0.35) }
-        .testimonial-card { transition: all 0.2s ease }
-        .testimonial-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.08) }
-        .feature-row:hover { background: #fef2f2 }
-        .feature-row { transition: background 0.2s }
+        @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0}
+        a{text-decoration:none;color:inherit}
+        .serif{font-family:'Instrument Serif',Georgia,serif}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+        @keyframes slideLeft{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        @keyframes countUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes borderPulse{0%,100%{border-color:rgba(239,68,68,.3)}50%{border-color:rgba(239,68,68,.8)}}
+        .live-dot{animation:pulse 1.4s ease-in-out infinite}
+        .ticker{animation:slideLeft 22s linear infinite;display:flex;white-space:nowrap}
+        .feed-item{animation:fadeIn .4s ease both}
+        .num-card{transition:transform .2s,background .2s}
+        .num-card:hover{transform:translateY(-4px);background:rgba(255,255,255,.06)!important}
+        .role-card{transition:all .22s ease;cursor:default}
+        .role-card:hover{transform:translateY(-6px)}
+        .nav-link{color:rgba(255,255,255,.45);font-size:14px;font-weight:500;transition:color .15s}
+        .nav-link:hover{color:#fff}
+        .btn-primary{background:#ef4444;color:#fff;border:none;cursor:pointer;font-weight:600;transition:all .15s;font-family:inherit}
+        .btn-primary:hover{background:#dc2626;transform:translateY(-1px)}
+        .btn-ghost{background:transparent;color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.12);cursor:pointer;font-family:inherit;transition:all .15s}
+        .btn-ghost:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+        .glow-line{background:linear-gradient(90deg,transparent,#ef4444,transparent)}
+        ::selection{background:#ef4444;color:#fff}
       `}</style>
 
+            {/* ── NOISE TEXTURE OVERLAY ── */}
+            <div style={{ position: 'fixed', inset: 0, backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E")`, pointerEvents: 'none', zIndex: 1, opacity: .4 }} />
+
             {/* ── NAV ── */}
-            <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100 px-6 lg:px-12 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-200">
-                        <span className="text-white font-bold text-lg">S</span>
-                    </div>
-                    <span className="font-bold text-xl text-gray-900">SafeNet</span>
+            <nav style={{ position: 'sticky', top: 0, zIndex: 200, padding: '0 48px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(9,9,11,.85)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <path d="M14 2L26 8v12L14 26 2 20V8L14 2z" fill="#ef4444" />
+                        <path d="M14 8v12M8 11l12 6M20 11L8 17" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                    <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: '-0.02em' }}>SafeNet</span>
                 </div>
-                <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-500">
-                    <a href="#how" className="nav-link transition-colors">How it works</a>
-                    <a href="#types" className="nav-link transition-colors">Emergencies</a>
-                    <a href="#who" className="nav-link transition-colors">Who it's for</a>
+                <div style={{ display: 'flex', gap: 28 }}>
+                    <a href="#mission" className="nav-link">Mission</a>
+                    <a href="#how" className="nav-link">How it works</a>
+                    <a href="#roles" className="nav-link">Roles</a>
                 </div>
-                <div className="flex items-center gap-3">
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                     {user ? (
-                        <Link to="/dashboard" className="cta-btn bg-red-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-red-100">
-                            Open Dashboard →
-                        </Link>
+                        <Link to="/dashboard"><button className="btn-primary" style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13 }}>Open dashboard</button></Link>
                     ) : (
                         <>
-                            <Link to="/login" className="nav-link text-sm font-medium text-gray-500 px-4 py-2 transition-colors">Sign in</Link>
-                            <Link to="/register" className="cta-btn bg-red-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-red-100">
-                                Get started free
-                            </Link>
+                            <Link to="/login"><button className="btn-ghost" style={{ padding: '8px 18px', borderRadius: 8, fontSize: 13 }}>Sign in</button></Link>
+                            <Link to="/register"><button className="btn-primary" style={{ padding: '8px 20px', borderRadius: 8, fontSize: 13 }}>Get started</button></Link>
                         </>
                     )}
                 </div>
             </nav>
 
             {/* ── HERO ── */}
-            <section className="relative px-6 lg:px-12 pt-20 pb-24 max-w-6xl mx-auto">
-                {/* Live badge */}
+            <section ref={heroRef} style={{ minHeight: '92vh', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, maxWidth: 1280, margin: '0 auto', padding: '0 48px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
 
+                {/* BG glow */}
+                <div style={{ position: 'absolute', top: '20%', left: '30%', width: 500, height: 500, background: 'radial-gradient(circle, rgba(239,68,68,.12) 0%, transparent 70%)', pointerEvents: 'none', transform: `translate(${mouseX * .6}px,${mouseY * .6}px)`, transition: 'transform .1s ease' }} />
 
-                <div className="grid lg:grid-cols-2 gap-16 items-center">
-                    <div>
-                        <h1 className="fade-up-1 text-5xl lg:text-6xl font-extrabold leading-tight text-gray-900 mb-6">
-                            Get help to the right place,{' '}
-                            <span className="text-red-600 relative">
-                                faster.
-                                <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 200 6" preserveAspectRatio="none">
-                                    <path d="M0 5 Q50 0 100 5 Q150 10 200 5" stroke="#ef4444" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                                </svg>
-                            </span>
-                        </h1>
-                        <p className="fade-up-2 text-lg text-gray-500 leading-relaxed mb-10 max-w-lg">
-                            SafeNet connects citizens with the nearest hospitals, fire stations, shelters and rescue teams — automatically, the moment an emergency is reported.
-                        </p>
-                        <div className="fade-up-3 flex items-center gap-4 flex-wrap">
-                            <Link to={user ? '/emergencies' : '/register'}
-                                className="cta-btn bg-red-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-red-200 text-base flex items-center gap-2">
-                                🚨 Report an emergency
-                            </Link>
-                            <a href="#how"
-                                className="text-gray-600 hover:text-gray-900 font-semibold px-6 py-4 rounded-2xl border border-gray-200 hover:border-gray-300 transition-all text-sm flex items-center gap-2">
-                                See how it works ↓
-                            </a>
-                        </div>
-                        {/* Social proof */}
-                        <div className="fade-up-3 flex items-center gap-3 mt-8">
-                            <div className="flex -space-x-2">
-                                {['🧑🏿', '👩🏾', '👨🏽', '👩🏼'].map((e, i) => (
-                                    <div key={i} className="w-8 h-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-sm">{e}</div>
-                                ))}
-                            </div>
-                            <p className="text-sm text-gray-400">Trusted by communities, resource managers & first responders</p>
-                        </div>
+                {/* Left */}
+                <div style={{ paddingRight: 48 }}>
+                    {/* Live feed pill */}
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.25)', borderRadius: 999, padding: '7px 14px', marginBottom: 36, animation: 'borderPulse 2.5s infinite' }}>
+                        <span className="live-dot" style={{ width: 7, height: 7, background: '#ef4444', borderRadius: '50%', display: 'block' }} />
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#f87171', letterSpacing: '.04em' }}>LIVE</span>
+                        <span style={{ width: 1, height: 14, background: 'rgba(255,255,255,.1)' }} />
+                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}
+                            key={tick}
+                            className="feed-item">
+                            {activeFeed.type} · {activeFeed.loc} · {activeFeed.ago} ago
+                        </span>
                     </div>
 
-                    {/* Hero visual — live dispatch card */}
-                    <div className="fade-up-2 relative">
-                        <div className="bg-gray-950 rounded-3xl p-6 shadow-2xl">
-                            {/* Mock phone notification */}
-                            <div className="bg-gray-900 rounded-2xl p-4 mb-4 border border-gray-800">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-sm">🚨</div>
-                                    <div>
-                                        <p className="text-white text-xs font-semibold">SafeNet Alert</p>
-                                        <p className="text-gray-400 text-xs">just now</p>
-                                    </div>
-                                    <div className="ml-auto w-2 h-2 bg-red-500 rounded-full" style={{ animation: 'pulse-dot 1.5s infinite' }} />
-                                </div>
-                                <p className="text-gray-300 text-sm">Car accident reported 1.2km from your station. 2 people need medical attention.</p>
+                    <h1 style={{ fontSize: 66, fontWeight: 700, lineHeight: 1.02, letterSpacing: '-0.04em', marginBottom: 24 }}>
+                        <span className="serif" style={{ fontStyle: 'italic', color: 'rgba(255,255,255,.75)', fontWeight: 400 }}>When</span>{' '}
+                        <span>seconds</span><br />
+                        <span className="serif" style={{ fontStyle: 'italic', color: 'rgba(255,255,255,.75)', fontWeight: 400 }}>become</span>{' '}
+                        <span style={{ color: '#ef4444' }}>lives.</span>
+                    </h1>
+
+                    <p style={{ fontSize: 18, color: 'rgba(255,255,255,.45)', lineHeight: 1.7, maxWidth: 420, marginBottom: 40, fontWeight: 400 }}>
+                        SafeNet routes emergency reports to the nearest available resource the moment they happen — no phone calls, no wait times, no missed alerts.
+                    </p>
+
+                    <div style={{ display: 'flex', gap: 12, marginBottom: 48, flexWrap: 'wrap' }}>
+                        <Link to={user ? '/emergencies' : '/register'}>
+                            <button className="btn-primary" style={{ padding: '14px 32px', borderRadius: 10, fontSize: 15, fontWeight: 600, letterSpacing: '-.01em', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span style={{ fontSize: 16 }}>⚡</span>
+                                Report an emergency
+                            </button>
+                        </Link>
+                        <a href="#how">
+                            <button className="btn-ghost" style={{ padding: '14px 24px', borderRadius: 10, fontSize: 15 }}>
+                                See how it works
+                            </button>
+                        </a>
+                    </div>
+
+                    {/* Proof row */}
+                    <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+                        <div style={{ display: 'flex' }}>
+                            {['#ef4444', '#f97316', '#8b5cf6', '#3b82f6', '#22c55e'].map((c, i) => (
+                                <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: c, border: '2px solid #09090b', marginLeft: i ? -9 : 0 }} />
+                            ))}
+                        </div>
+                        <div>
+                            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.6)', lineHeight: 1.5 }}>
+                                Trusted by citizens, clinics,<br />fire brigades & police units
+                            </p>
+                        </div>
+                        <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,.08)' }} />
+                        <div>
+                            <p style={{ fontSize: 22, fontWeight: 700, color: '#fff' }}>847</p>
+                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,.35)' }}>incidents resolved</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right — dispatch terminal */}
+                <div style={{ transform: `perspective(1200px) rotateY(${mouseX * -.4}deg) rotateX(${mouseY * .3}deg)`, transition: 'transform .08s ease' }}>
+                    <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 24, overflow: 'hidden', boxShadow: '0 0 0 1px rgba(0,0,0,.5), 0 40px 100px rgba(0,0,0,.6)' }}>
+
+                        {/* Terminal header */}
+                        <div style={{ background: 'rgba(255,255,255,.04)', borderBottom: '1px solid rgba(255,255,255,.07)', padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            {['#ef4444', '#f59e0b', '#22c55e'].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c, opacity: .7 }} />)}
+                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,.25)', marginLeft: 6, letterSpacing: '.05em' }}>safenet.dispatch — live</span>
+                            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <div style={{ width: 6, height: 6, background: '#22c55e', borderRadius: '50%', animation: 'pulse 1.5s infinite' }} />
+                                <span style={{ fontSize: 10, color: 'rgba(255,255,255,.3)' }}>connected</span>
                             </div>
-                            {/* Nearby resources */}
-                            <p className="text-gray-500 text-xs uppercase tracking-widest mb-3 font-semibold">Nearest resources found</p>
-                            {[
-                                { icon: '🏥', name: 'King Faisal Hospital', dist: '0.8 km', status: 'Available', color: 'text-green-400' },
-                                { icon: '🚒', name: 'Fire Brigade Kigali', dist: '1.4 km', status: 'Available', color: 'text-green-400' },
-                                { icon: '👮', name: 'Rwanda National Police', dist: '2.1 km', status: 'Responding', color: 'text-yellow-400' },
-                            ].map(r => (
-                                <div key={r.name} className="flex items-center gap-3 py-2.5 border-b border-gray-800 last:border-0">
-                                    <span className="text-xl">{r.icon}</span>
-                                    <div className="flex-1">
-                                        <p className="text-white text-xs font-medium">{r.name}</p>
-                                        <p className="text-gray-500 text-xs">{r.dist} away</p>
+                        </div>
+
+                        {/* Active alert */}
+                        <div style={{ padding: '20px 20px 0' }}>
+                            <div style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', borderRadius: 14, padding: 18, marginBottom: 16 }}>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <div style={{ background: '#ef4444', borderRadius: 8, padding: '6px 10px', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '.04em' }}>MEDICAL</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                            <div className="live-dot" style={{ width: 6, height: 6, background: '#ef4444', borderRadius: '50%' }} />
+                                            <span style={{ fontSize: 11, color: '#f87171', fontWeight: 600 }}>LIVE</span>
+                                        </div>
                                     </div>
-                                    <span className={`text-xs font-semibold ${r.color}`}>{r.status}</span>
+                                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,.25)' }}>0:12 ago</span>
+                                </div>
+                                <p style={{ fontSize: 14, color: 'rgba(255,255,255,.8)', lineHeight: 1.55, marginBottom: 8 }}>
+                                    Person collapsed near Kimironko market. Needs immediate medical attention.
+                                </p>
+                                <p style={{ fontSize: 12, color: 'rgba(255,255,255,.3)' }}>📍 Kimironko, Gasabo · -1.9350, 30.0900</p>
+                            </div>
+                        </div>
+
+                        {/* Resources matched */}
+                        <div style={{ padding: '0 20px 4px' }}>
+                            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.2)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 12 }}>3 resources matched & alerted</p>
+                            {[
+                                { icon: '🏥', name: 'King Faisal Hospital', dist: '1.1 km', status: 'Dispatched', sc: '#22c55e', bg: 'rgba(34,197,94,.08)' },
+                                { icon: '🚑', name: 'CHUK Emergency Unit', dist: '2.4 km', status: 'On standby', sc: '#f59e0b', bg: 'rgba(245,158,11,.08)' },
+                                { icon: '🚔', name: 'Rwanda National Police', dist: '0.9 km', status: 'En route', sc: '#3b82f6', bg: 'rgba(59,130,246,.08)' },
+                            ].map(r => (
+                                <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: 12, background: r.bg, border: `1px solid ${r.sc}22`, borderRadius: 12, padding: '11px 14px', marginBottom: 8 }}>
+                                    <span style={{ fontSize: 20 }}>{r.icon}</span>
+                                    <div style={{ flex: 1 }}>
+                                        <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,.8)' }}>{r.name}</p>
+                                        <p style={{ fontSize: 11, color: 'rgba(255,255,255,.3)' }}>{r.dist} away</p>
+                                    </div>
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: r.sc }}>{r.status}</span>
                                 </div>
                             ))}
-                            <div className="mt-4 bg-red-600 rounded-xl py-3 text-center text-white text-sm font-bold">
-                                ✓ Alerts sent to 3 resources
+                        </div>
+
+                        {/* Footer bar */}
+                        <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div style={{ animation: 'spin 2.5s linear infinite', width: 14, height: 14, border: '2px solid rgba(255,255,255,.1)', borderTopColor: '#ef4444', borderRadius: '50%' }} />
+                                <span style={{ fontSize: 12, color: 'rgba(255,255,255,.3)' }}>Monitoring 6 active zones</span>
                             </div>
+                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,.2)' }}>alerts sent via SMS · email · app</span>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* ── STATS STRIP ── */}
-            <section className="bg-red-600 py-10">
-                <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                    {STATS.map(s => (
-                        <div key={s.label}>
-                            <p className="text-3xl font-extrabold text-white mb-1">{s.value}</p>
-                            <p className="text-red-200 text-sm font-medium">{s.label}</p>
+            {/* ── TICKER ── */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,.06)', borderBottom: '1px solid rgba(255,255,255,.06)', overflow: 'hidden', padding: '14px 0', zIndex: 2, position: 'relative' }}>
+                <div className="ticker">
+                    {Array(4).fill(null).flatMap(() =>
+                        ['Medical emergency', 'Fire response', 'Flood alert', 'Road accident', 'Crime report', 'Shelter request', 'Volunteer dispatch', 'Police alert'].map(t => (
+                            <span key={t + Math.random()} style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '0 28px', fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.2)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
+                                <span style={{ width: 4, height: 4, background: '#ef4444', borderRadius: '50%', display: 'block', opacity: .6 }} />
+                                {t}
+                            </span>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* ── NUMBERS ── */}
+            <section style={{ padding: '80px 48px', maxWidth: 1280, margin: '0 auto', zIndex: 2, position: 'relative' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+                    {NUMBERS.map(n => (
+                        <div key={n.n} className="num-card" style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 20, padding: '28px 24px' }}>
+                            <p style={{ fontSize: 42, fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', marginBottom: 6, lineHeight: 1 }}>{n.n}</p>
+                            <p style={{ fontSize: 14, color: 'rgba(255,255,255,.6)', fontWeight: 500, marginBottom: 4 }}>{n.label}</p>
+                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,.2)' }}>{n.sub}</p>
                         </div>
                     ))}
                 </div>
+            </section>
+
+            {/* ── MISSION STATEMENT ── */}
+            <section id="mission" style={{ padding: '80px 48px', maxWidth: 900, margin: '0 auto', textAlign: 'center', zIndex: 2, position: 'relative' }}>
+                <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)', marginBottom: 64 }} />
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#ef4444', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 24 }}>Why we built this</p>
+                <p className="serif" style={{ fontSize: 38, lineHeight: 1.3, color: 'rgba(255,255,255,.85)', fontWeight: 400, letterSpacing: '-0.01em' }}>
+                    "Every minute between an emergency and a response{' '}
+                    <em style={{ color: '#ef4444' }}>costs lives.</em>{' '}
+                    We built SafeNet so that gap{' '}
+                    <em>disappears.</em>"
+                </p>
+                <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)', marginTop: 64 }} />
             </section>
 
             {/* ── HOW IT WORKS ── */}
-            <section id="how" className="py-24 px-6 lg:px-12 max-w-6xl mx-auto">
-                <div className="text-center mb-16">
-                    <p className="text-red-600 text-sm font-bold uppercase tracking-widest mb-3">Simple by design</p>
-                    <h2 className="text-4xl font-extrabold text-gray-900">How SafeNet works</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {HOW_IT_WORKS.map((h, i) => (
-                        <div key={h.step} className="step-card text-center group">
-                            <div className="relative inline-flex items-center justify-center mb-5">
-                                <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-3xl step-icon">
-                                    {h.icon}
-                                </div>
-                                <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                                    {i + 1}
-                                </span>
-                            </div>
-                            {i < HOW_IT_WORKS.length - 1 && (
-                                <div className="hidden md:block absolute mt-[-2.5rem] ml-[10rem] text-gray-200 text-2xl">→</div>
-                            )}
-                            <h3 className="font-bold text-gray-900 text-lg mb-2">{h.title}</h3>
-                            <p className="text-gray-400 text-sm leading-relaxed">{h.desc}</p>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* ── EMERGENCY TYPES ── */}
-            <section id="types" className="bg-gray-50 py-20 px-6 lg:px-12">
-                <div className="max-w-6xl mx-auto">
-                    <div className="text-center mb-12">
-                        <p className="text-red-600 text-sm font-bold uppercase tracking-widest mb-3">Coverage</p>
-                        <h2 className="text-4xl font-extrabold text-gray-900">We handle every emergency type</h2>
+            <section id="how" style={{ padding: '80px 48px', maxWidth: 1280, margin: '0 auto', zIndex: 2, position: 'relative' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+                    <div>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: '#ef4444', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 20 }}>The flow</p>
+                        <h2 style={{ fontSize: 46, fontWeight: 700, lineHeight: 1.08, letterSpacing: '-0.03em', marginBottom: 16 }}>
+                            Four steps.<br />
+                            <span className="serif" style={{ fontStyle: 'italic', color: 'rgba(255,255,255,.5)', fontWeight: 400 }}>Under a minute.</span>
+                        </h2>
+                        <p style={{ fontSize: 16, color: 'rgba(255,255,255,.4)', lineHeight: 1.7, maxWidth: 380 }}>
+                            From the moment you report to the moment help is dispatched — SafeNet does the routing, matching, and alerting automatically.
+                        </p>
                     </div>
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-                        {EMERGENCY_TYPES.map((t, i) => (
-                            <div key={t.label} onClick={() => setActiveType(i)}
-                                className="type-pill cursor-pointer rounded-2xl p-5 text-center border-2 transition-all"
-                                style={{
-                                    borderColor: activeType === i ? t.color : 'transparent',
-                                    background: activeType === i ? `${t.color}10` : 'white',
-                                    transform: activeType === i ? 'scale(1.05)' : 'scale(1)',
-                                }}>
-                                <span className="text-3xl block mb-2">{t.icon}</span>
-                                <p className="text-gray-700 text-xs font-semibold">{t.label}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {[
+                            { n: '01', title: 'You tap Report', desc: 'Describe the emergency and share your location. 30 seconds max.', color: '#ef4444' },
+                            { n: '02', title: 'We find the nearest', desc: 'SafeNet calculates the closest available hospitals, police, clinics.', color: '#f97316' },
+                            { n: '03', title: 'They get alerted', desc: 'SMS, email, and in-app notifications sent simultaneously.', color: '#eab308' },
+                            { n: '04', title: 'You track it live', desc: 'Watch your report go from Pending → Responding → Resolved.', color: '#22c55e' },
+                        ].map((s, i) => (
+                            <div key={s.n} style={{ display: 'flex', gap: 20, padding: '20px 24px', borderRadius: 16, background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.05)', position: 'relative', overflow: 'hidden' }}>
+                                <div style={{ width: 3, alignSelf: 'stretch', background: s.color, borderRadius: 2, flexShrink: 0 }} />
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+                                        <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.2)', letterSpacing: '.08em' }}>{s.n}</span>
+                                        <h3 style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>{s.title}</h3>
+                                    </div>
+                                    <p style={{ fontSize: 14, color: 'rgba(255,255,255,.4)', lineHeight: 1.6 }}>{s.desc}</p>
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* ── WHO IT'S FOR ── */}
-            <section id="who" className="py-24 px-6 lg:px-12 max-w-6xl mx-auto">
-                <div className="text-center mb-16">
-                    <p className="text-red-600 text-sm font-bold uppercase tracking-widest mb-3">Built for everyone</p>
-                    <h2 className="text-4xl font-extrabold text-gray-900">One platform, three roles</h2>
+            {/* ── ROLES ── */}
+            <section id="roles" style={{ padding: '80px 48px', maxWidth: 1280, margin: '0 auto', zIndex: 2, position: 'relative' }}>
+                <div style={{ textAlign: 'center', marginBottom: 56 }}>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#ef4444', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 16 }}>Three roles</p>
+                    <h2 style={{ fontSize: 46, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                        One platform,<br />
+                        <span className="serif" style={{ fontStyle: 'italic', color: 'rgba(255,255,255,.45)', fontWeight: 400 }}>every perspective.</span>
+                    </h2>
                 </div>
-                <div className="grid md:grid-cols-3 gap-6">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr 1fr', gap: 20 }}>
                     {[
                         {
-                            icon: '👤', role: 'Community Member', color: 'bg-blue-50 border-blue-100',
-                            accent: 'text-blue-600', badge: 'bg-blue-100 text-blue-700',
-                            perks: ['Report emergencies in seconds', 'See nearest resources on a map', 'Track response status live', 'Receive in-app notifications'],
+                            label: 'Citizens', icon: '👤',
+                            badge: null, accent: '#3b82f6',
+                            bg: 'rgba(59,130,246,.05)', border: 'rgba(59,130,246,.15)',
+                            desc: 'Anyone can report. Anyone can be helped.',
+                            items: ['Report in under 30 seconds', 'Track your report live', 'Get real-time status updates', 'See nearest resources on map'],
                         },
                         {
-                            icon: '🏥', role: 'Resource Manager', color: 'bg-red-50 border-red-100',
-                            accent: 'text-red-600', badge: 'bg-red-100 text-red-700',
-                            perks: ['Receive instant SMS & email alerts', 'Accept or reject emergency requests', 'Update your resource availability', 'View all incidents in your radius'],
-                            featured: true,
+                            label: 'Resource managers', icon: '🏥',
+                            badge: 'Core role', accent: '#ef4444',
+                            bg: 'rgba(239,68,68,.06)', border: 'rgba(239,68,68,.25)',
+                            desc: 'Receive alerts. Accept. Respond. Resolve.',
+                            items: ['Instant SMS & email alerts', 'One-tap accept or reject', 'Toggle your availability', 'Manage your resources live'],
                         },
                         {
-                            icon: '🛡️', role: 'Administrator', color: 'bg-purple-50 border-purple-100',
-                            accent: 'text-purple-600', badge: 'bg-purple-100 text-purple-700',
-                            perks: ['Full analytics dashboard', 'Manage all users and resources', 'Monitor response times', 'Export incident reports'],
+                            label: 'Administrators', icon: '🛡️',
+                            badge: null, accent: '#8b5cf6',
+                            bg: 'rgba(139,92,246,.05)', border: 'rgba(139,92,246,.15)',
+                            desc: 'Full visibility over the entire system.',
+                            items: ['Complete analytics dashboard', 'Manage all users & resources', 'Audit log of all activity', 'Response time monitoring'],
                         },
                     ].map(r => (
-                        <div key={r.role}
-                            className={`rounded-3xl border-2 p-8 ${r.color} ${r.featured ? 'ring-2 ring-red-400 ring-offset-2 scale-[1.02]' : ''}`}>
-                            {r.featured && (
-                                <span className={`text-xs font-bold px-3 py-1 rounded-full ${r.badge} mb-4 inline-block`}>Most active role</span>
+                        <div key={r.label} className="role-card" style={{ background: r.bg, border: `1px solid ${r.border}`, borderRadius: 24, padding: 32, position: 'relative' }}>
+                            {r.badge && (
+                                <div style={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', background: r.accent, color: '#fff', fontSize: 10, fontWeight: 700, padding: '5px 14px', borderRadius: 999, letterSpacing: '.06em', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{r.badge}</div>
                             )}
-                            <div className="text-4xl mb-4">{r.icon}</div>
-                            <h3 className={`text-xl font-bold mb-5 ${r.accent}`}>{r.role}</h3>
-                            <ul className="space-y-3">
-                                {r.perks.map(p => (
-                                    <li key={p} className="flex items-start gap-2.5 text-sm text-gray-600">
-                                        <span className={`mt-0.5 font-bold ${r.accent}`}>✓</span>
-                                        {p}
-                                    </li>
+                            <div style={{ fontSize: 36, marginBottom: 20 }}>{r.icon}</div>
+                            <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 8, letterSpacing: '-0.02em' }}>{r.label}</h3>
+                            <p style={{ fontSize: 14, color: 'rgba(255,255,255,.35)', marginBottom: 24, lineHeight: 1.5 }}>{r.desc}</p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                {r.items.map(item => (
+                                    <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <div style={{ width: 16, height: 16, borderRadius: 4, background: `${r.accent}22`, border: `1px solid ${r.accent}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                            <span style={{ fontSize: 9, color: r.accent, fontWeight: 700 }}>✓</span>
+                                        </div>
+                                        <span style={{ fontSize: 13, color: 'rgba(255,255,255,.55)', lineHeight: 1.4 }}>{item}</span>
+                                    </div>
                                 ))}
-                            </ul>
+                            </div>
                         </div>
                     ))}
                 </div>
             </section>
 
             {/* ── TESTIMONIALS ── */}
-            <section className="bg-gray-950 py-24 px-6 lg:px-12">
-                <div className="max-w-6xl mx-auto">
-                    <div className="text-center mb-16">
-                        <p className="text-red-500 text-sm font-bold uppercase tracking-widest mb-3">Real impact</p>
-                        <h2 className="text-4xl font-extrabold text-white">What people are saying</h2>
-                    </div>
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {TESTIMONIALS.map(t => (
-                            <div key={t.name} className="testimonial-card bg-gray-900 border border-gray-800 rounded-3xl p-7">
-                                <p className="text-gray-300 text-sm leading-relaxed mb-6">"{t.quote}"</p>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-lg">
-                                        {t.name[0]}
-                                    </div>
-                                    <div>
-                                        <p className="text-white font-semibold text-sm">{t.name}</p>
-                                        <p className="text-gray-500 text-xs">{t.role}</p>
+            <section style={{ padding: '80px 48px', zIndex: 2, position: 'relative', borderTop: '1px solid rgba(255,255,255,.06)' }}>
+                <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 80, alignItems: 'start' }}>
+                        <div>
+                            <p style={{ fontSize: 12, fontWeight: 600, color: '#ef4444', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 20 }}>Impact</p>
+                            <h2 style={{ fontSize: 42, fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: 20 }}>
+                                Real stories.<br />
+                                <span className="serif" style={{ fontStyle: 'italic', color: 'rgba(255,255,255,.35)', fontWeight: 400 }}>Real outcomes.</span>
+                            </h2>
+                            <p style={{ fontSize: 14, color: 'rgba(255,255,255,.3)', lineHeight: 1.7 }}>From the communities we serve across Kigali and beyond.</p>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            {[
+                                { name: 'Marie K.', role: 'Community member, Kimironko', quote: 'I reported a road accident and within minutes the nearest clinic was notified. The responder arrived in under 8 minutes. SafeNet is not an app — it\'s a lifeline.' },
+                                { name: 'Insp. Jean P.', role: 'Police Resource Manager, Gasabo', quote: 'Before SafeNet, incident reports came through radio or phone — slow and easy to miss. Now I get an instant alert with the exact location. We responded to 23 incidents last month through this platform alone.' },
+                                { name: 'Dr. Amina N.', role: 'Hospital Administrator, CHUK', quote: 'We update our availability directly and the routing system finds us automatically. Three of our emergency patients last month came directly through SafeNet alerts.' },
+                            ].map(t => (
+                                <div key={t.name} style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 18, padding: '24px 28px' }}>
+                                    <p style={{ fontSize: 15, color: 'rgba(255,255,255,.6)', lineHeight: 1.75, marginBottom: 20, fontStyle: 'italic' }}>"{t.quote}"</p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', fontSize: 14, flexShrink: 0 }}>{t.name[0]}</div>
+                                        <div>
+                                            <p style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,.8)' }}>{t.name}</p>
+                                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,.25)' }}>{t.role}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
             </section>
 
-            {/* ── CTA ── */}
-            <section className="py-24 px-6 text-center">
-                <div className="max-w-2xl mx-auto">
-                    <div className="w-16 h-16 bg-red-100 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-8">🛡️</div>
-                    <h2 className="text-4xl font-extrabold text-gray-900 mb-5">
-                        Your community deserves<br />faster emergency response.
+            {/* ── FINAL CTA ── */}
+            <section style={{ padding: '100px 48px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(239,68,68,.08) 0%, transparent 65%)', pointerEvents: 'none' }} />
+                <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative' }}>
+                    <h2 style={{ fontSize: 58, fontWeight: 700, lineHeight: 1.05, letterSpacing: '-0.04em', marginBottom: 20 }}>
+                        <span className="serif" style={{ fontStyle: 'italic', color: 'rgba(255,255,255,.5)', fontWeight: 400 }}>Every second</span><br />
+                        <span>already costs someone.</span>
                     </h2>
-                    <p className="text-gray-400 text-lg mb-10">
-                        Join SafeNet today — free for citizens, built for those who protect communities.
+                    <p style={{ fontSize: 18, color: 'rgba(255,255,255,.35)', lineHeight: 1.7, marginBottom: 44, maxWidth: 460, margin: '0 auto 44px' }}>
+                        Join SafeNet. Report faster. Respond smarter. Save more lives.
                     </p>
-                    <div className="flex items-center justify-center gap-4 flex-wrap">
-                        <Link to={user ? '/emergencies' : '/register'}
-                            className="cta-btn bg-red-600 text-white font-bold px-10 py-4 rounded-2xl shadow-xl shadow-red-200 text-base">
-                            {user ? 'Go to dashboard →' : 'Get started — it\'s free →'}
+                    <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <Link to={user ? '/dashboard' : '/register'}>
+                            <button className="btn-primary" style={{ padding: '16px 40px', borderRadius: 12, fontSize: 16, fontWeight: 700, letterSpacing: '-.01em' }}>
+                                {user ? 'Go to dashboard' : 'Get started free'}
+                            </button>
                         </Link>
-                        <Link to="/login" className="text-gray-400 hover:text-gray-700 text-sm font-medium transition-colors py-4">
-                            Already have an account?
+                        <Link to="/login">
+                            <button className="btn-ghost" style={{ padding: '16px 28px', borderRadius: 12, fontSize: 15 }}>
+                                Sign in
+                            </button>
                         </Link>
                     </div>
                 </div>
             </section>
 
             {/* ── FOOTER ── */}
-            <footer className="border-t border-gray-100 px-6 lg:px-12 py-8 flex items-center justify-between flex-wrap gap-4 text-sm text-gray-400">
-                <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">S</span>
-                    </div>
-                    <span className="font-semibold text-gray-700">SafeNet</span>
-                    <span>· Smart Emergency Management Platform</span>
+            <footer style={{ borderTop: '1px solid rgba(255,255,255,.06)', padding: '28px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 2, position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+                        <path d="M14 2L26 8v12L14 26 2 20V8L14 2z" fill="#ef4444" />
+                        <path d="M14 8v12M8 11l12 6M20 11L8 17" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                    <span style={{ fontWeight: 700, color: 'rgba(255,255,255,.6)', fontSize: 14 }}>SafeNet</span>
+                    <span style={{ color: 'rgba(255,255,255,.15)', fontSize: 14 }}>·</span>
+                    <span style={{ color: 'rgba(255,255,255,.2)', fontSize: 13 }}>Smart Emergency Management · Kigali, Rwanda</span>
                 </div>
-                <span>Built for communities. Available 24/7.</span>
+                <span style={{ color: 'rgba(255,255,255,.15)', fontSize: 12 }}>Available 24 / 7</span>
             </footer>
         </div>
     )

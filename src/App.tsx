@@ -11,18 +11,18 @@ import EmergenciesPage from './pages/EmergenciesPage'
 import ResourcesPage from './pages/ResourcesPage'
 import AlertsPage from './pages/AlertsPage'
 import NotificationsPage from './pages/NotificationsPage'
+import SettingsPage from './pages/SettingsPage'
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
   return (
-    <div className="flex h-screen bg-gray-950 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
-
     </div>
   )
 }
@@ -30,10 +30,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   const { user, isLoading } = useAuth()
   if (isLoading) return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="flex items-center gap-3">
-        <div className="w-6 h-6 border-2 border-gray-700 border-t-red-500 rounded-full animate-spin" />
-        <span className="text-gray-400">Loading SafeNet...</span>
+        <div className="w-6 h-6 border-2 border-gray-200 border-t-red-500 rounded-full animate-spin" />
+        <span className="text-gray-500">Loading SafeNet...</span>
       </div>
     </div>
   )
@@ -47,7 +47,8 @@ function AppRoutes() {
       <Route path="/resources" element={<AppLayout><ResourcesPage /></AppLayout>} />
       <Route path="/alerts" element={<AppLayout><AlertsPage /></AppLayout>} />
       <Route path="/notifications" element={<AppLayout><NotificationsPage /></AppLayout>} />
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="/settings" element={<AppLayout><SettingsPage /></AppLayout>} />
+      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/'} />} />
     </Routes>
   )
 }
