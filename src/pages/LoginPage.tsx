@@ -88,6 +88,7 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit}>
+            <label htmlFor="email">Email</label>
             <input
               type="email"
               placeholder="Email"
@@ -97,6 +98,7 @@ export default function LoginPage() {
             />
 
             <div style={{ marginTop: 15 }}>
+              <label htmlFor="password">Password</label>
               <input
                 type={showPw ? 'text' : 'password'}
                 placeholder="Password"
