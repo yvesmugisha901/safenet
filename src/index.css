@@ -1,7 +1,12 @@
+/* FIRST — imports */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* THEN Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* THEN your styles */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -10,12 +15,258 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background-color: #f7fafc;
+    background: #f7fafc;
     color: #1a1a2e;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Dashboard background — soft warm white */
-.dashboard-bg {
+/* ── Global responsive helpers ── */
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none !important;
+    }
+
+    .show-mobile {
+        display: flex !important;
+    }
+}
+
+/* ── Page content responsive padding ── */
+.page-content {
+    padding: 24px;
     background: #f7fafc;
     min-height: 100%;
+}
+
+@media (max-width: 640px) {
+    .page-content {
+        padding: 16px;
+    }
+}
+
+/* ── Responsive grid helpers ── */
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 900px) {
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Auth pages responsive ── */
+@media (max-width: 768px) {
+    .auth-split {
+        grid-template-columns: 1fr !important;
+    }
+
+    .auth-left {
+        display: none !important;
+    }
+
+    .auth-right {
+        padding: 32px 24px !important;
+    }
+}
+
+/* ── Dashboard tables responsive ── */
+.responsive-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── Card responsive ── */
+.card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+}
+
+/* ── Stat card ── */
+.stat-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    text-align: center;
+}
+
+/* ── Button base ── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-red {
+    background: #e53e3e;
+    color: #fff;
+}
+
+.btn-red:hover {
+    background: #c53030;
+    transform: translateY(-1px);
+}
+
+.btn-gray {
+    background: #edf2f7;
+    color: #4a5568;
+}
+
+.btn-gray:hover {
+    background: #e2e8f0;
+}
+
+.btn-sm {
+    padding: 7px 14px;
+    font-size: 13px;
+}
+
+.btn-md {
+    padding: 10px 20px;
+    font-size: 14px;
+}
+
+.btn-lg {
+    padding: 13px 28px;
+    font-size: 15px;
+}
+
+.btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ── Input base ── */
+.input {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14px;
+    color: #1a1a2e;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.input:focus {
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 3px rgba(229, 62, 62, .1);
+}
+
+.input::placeholder {
+    color: #a0aec0;
+}
+
+/* ── Badge ── */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.badge-red {
+    background: #fff5f5;
+    color: #c53030;
+    border: 1px solid #fed7d7;
+}
+
+.badge-green {
+    background: #f0fff4;
+    color: #276749;
+    border: 1px solid #9ae6b4;
+}
+
+.badge-amber {
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.badge-gray {
+    background: #f7fafc;
+    color: #718096;
+    border: 1px solid #e2e8f0;
+}
+
+.badge-blue {
+    background: #ebf8ff;
+    color: #2b6cb0;
+    border: 1px solid #bee3f8;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e0;
+}
+
+/* ── Selection ── */
+::selection {
+    background: #e53e3e;
+    color: #fff;
 }

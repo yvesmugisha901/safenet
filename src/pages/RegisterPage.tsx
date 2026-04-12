@@ -29,7 +29,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr', fontFamily: "'Inter','Helvetica Neue',Arial,sans-serif" }}>
+    <div className="auth-split" style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr', fontFamily: "'Inter','Helvetica Neue',Arial,sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         *{box-sizing:border-box;margin:0;padding:0}
@@ -44,7 +44,7 @@ export default function RegisterPage() {
       `}</style>
 
       {/* ── LEFT — branding panel ── */}
-      <div style={{ background: '#1a1a2e', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '48px', position: 'relative', overflow: 'hidden' }}>
+      <div className="auth-left" style={{ background: '#1a1a2e', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '48px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: 400, height: 400, background: 'radial-gradient(circle, rgba(229,62,62,.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: '5%', right: '-5%', width: 300, height: 300, background: 'radial-gradient(circle, rgba(56,161,105,.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
@@ -88,7 +88,7 @@ export default function RegisterPage() {
       </div>
 
       {/* ── RIGHT — register form ── */}
-      <div style={{ background: '#f7fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px', overflowY: 'auto' }}>
+      <div className="auth-right" style={{ background: '#f7fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px', overflowY: 'auto' }}>
         <div style={{ width: '100%', maxWidth: 420 }}>
 
           <div className="fade-up" style={{ marginBottom: 32 }}>

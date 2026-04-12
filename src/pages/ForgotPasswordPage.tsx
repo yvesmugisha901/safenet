@@ -21,7 +21,7 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr', fontFamily: "'Inter','Helvetica Neue',Arial,sans-serif" }}>
+        <div className="auth-split" style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr', fontFamily: "'Inter','Helvetica Neue',Arial,sans-serif" }}>
             <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         *{box-sizing:border-box;margin:0;padding:0}
@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
       `}</style>
 
             {/* ── LEFT ── */}
-            <div style={{ background: '#1a1a2e', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '48px', position: 'relative', overflow: 'hidden' }}>
+            <div className="auth-left" style={{ background: '#1a1a2e', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '48px', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', top: '20%', right: '-10%', width: 380, height: 380, background: 'radial-gradient(circle, rgba(229,62,62,.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
                 <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', position: 'relative', zIndex: 1 }}>
@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             {/* ── RIGHT ── */}
-            <div style={{ background: '#f7fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px' }}>
+            <div className="auth-right" style={{ background: '#f7fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px' }}>
                 <div style={{ width: '100%', maxWidth: 400 }}>
 
                     {step === 'email' ? (
@@ -166,4 +166,4 @@ export default function ForgotPasswordPage() {
             </div>
         </div>
     )
-} 
+}
