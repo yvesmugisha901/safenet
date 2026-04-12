@@ -1,17 +1,161 @@
-import RegisterForm from '../components/auth/RegisterForm'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 export default function RegisterPage() {
+  const { register } = useAuth()
+  const navigate = useNavigate()
+  const [form, setForm] = useState({ name: '', email: '', password: '', phone: '', role: 'user' })
+  const [showPw, setShowPw] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const set = (key: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm(f => ({ ...f, [key]: e.target.value }))
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (form.password.length < 6) { setError('Password must be at least 6 characters'); return }
+    setLoading(true)
+    try {
+      await register(form)
+      navigate('/dashboard')
+    } catch (err: any) {
+      setError(err.message || 'Registration failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 w-full max-w-md shadow-2xl">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold text-lg">S</span>
-          </div>
-          <h1 className="text-white text-2xl font-bold">SafeNet</h1>
+    <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr', fontFamily: "'Inter','Helvetica Neue',Arial,sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0}
+        .input-field{width:100%;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 16px;font-size:14px;color:#1a1a2e;font-family:inherit;transition:border-color .15s,box-shadow .15s;outline:none}
+        .input-field:focus{border-color:#e53e3e;box-shadow:0 0 0 3px rgba(229,62,62,.1)}
+        .input-field::placeholder{color:#a0aec0}
+        .btn-primary{width:100%;background:#e53e3e;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,transform .1s}
+        .btn-primary:hover:not(:disabled){background:#c53030;transform:translateY(-1px)}
+        .btn-primary:disabled{opacity:.55;cursor:not-allowed}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .fade-up{animation:fadeUp .5s ease both}
+      `}</style>
+
+      {/* ── LEFT — branding panel ── */}
+      <div style={{ background: '#1a1a2e', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '48px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: 400, height: 400, background: 'radial-gradient(circle, rgba(229,62,62,.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '5%', right: '-5%', width: 300, height: 300, background: 'radial-gradient(circle, rgba(56,161,105,.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative', zIndex: 1 }}>
+          <div style={{ width: 36, height: 36, background: '#e53e3e', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#fff', fontSize: 18 }}>S</div>
+          <span style={{ fontWeight: 800, fontSize: 20, color: '#fff', letterSpacing: '-0.02em' }}>SafeNet</span>
         </div>
-        <h2 className="text-gray-300 text-lg font-semibold mb-6">Create your account</h2>
-        <RegisterForm />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h2 style={{ fontSize: 38, fontWeight: 800, color: '#fff', lineHeight: 1.15, letterSpacing: '-0.03em', marginBottom: 20 }}>
+            Join SafeNet.<br />
+            <span style={{ color: '#fc8181' }}>Protect your community.</span>
+          </h2>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,.4)', lineHeight: 1.75, maxWidth: 360, marginBottom: 40 }}>
+            Create a free account and start reporting emergencies, tracking responses, or managing resources in your area.
+          </p>
+
+          {/* Role descriptions */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { initial: 'C', bg: '#3182ce', title: 'Citizen', desc: 'Report emergencies & track status' },
+              { initial: 'R', bg: '#e53e3e', title: 'Resource Manager', desc: 'Respond to alerts & manage resources' },
+              { initial: 'A', bg: '#6b46c1', title: 'Administrator', desc: 'Full system oversight & analytics' },
+            ].map(r => (
+              <div key={r.title} style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 12, padding: '14px 16px' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: r.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: '#fff', flexShrink: 0 }}>
+                  {r.initial}
+                </div>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.8)' }}>{r.title}</p>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,.3)' }}>{r.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,.2)', position: 'relative', zIndex: 1 }}>
+          Free for all users. No credit card required.
+        </p>
+      </div>
+
+      {/* ── RIGHT — register form ── */}
+      <div style={{ background: '#f7fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px', overflowY: 'auto' }}>
+        <div style={{ width: '100%', maxWidth: 420 }}>
+
+          <div className="fade-up" style={{ marginBottom: 32 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.025em', marginBottom: 8 }}>Create your account</h1>
+            <p style={{ fontSize: 14, color: '#718096' }}>Get started with SafeNet in under a minute</p>
+          </div>
+
+          {error && (
+            <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', gap: 10, alignItems: 'center' }}>
+              <span style={{ fontSize: 16 }}>⚠️</span>
+              <p style={{ fontSize: 13, color: '#c53030', fontWeight: 500 }}>{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 6 }}>Full name</label>
+              <input type="text" required value={form.name} onChange={set('name')}
+                className="input-field" placeholder="Your full name" />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 6 }}>Email address</label>
+              <input type="email" required value={form.email} onChange={set('email')}
+                className="input-field" placeholder="you@example.com" />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 6 }}>Phone number <span style={{ color: '#a0aec0', fontWeight: 400 }}>(optional)</span></label>
+              <input type="tel" value={form.phone} onChange={set('phone')}
+                className="input-field" placeholder="+250 788 000 000" />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 6 }}>Password</label>
+              <div style={{ position: 'relative' }}>
+                <input type={showPw ? 'text' : 'password'} required value={form.password} onChange={set('password')}
+                  className="input-field" placeholder="Minimum 6 characters" style={{ paddingRight: 44 }} />
+                <button type="button" onClick={() => setShowPw(v => !v)}
+                  style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#a0aec0', fontSize: 13, fontWeight: 500, padding: 0 }}>
+                  {showPw ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 6 }}>I am a</label>
+              <select value={form.role} onChange={set('role')}
+                className="input-field" style={{ cursor: 'pointer' }}>
+                <option value="user">Community member — I want to report emergencies</option>
+                <option value="resource_manager">Resource manager — I manage a hospital / police / fire unit</option>
+              </select>
+              <p style={{ fontSize: 11, color: '#a0aec0', marginTop: 5 }}>Admin accounts are created by existing administrators only.</p>
+            </div>
+
+            <button type="submit" disabled={loading} className="btn-primary" style={{ marginTop: 6 }}>
+              {loading ? 'Creating account...' : 'Create my account →'}
+            </button>
+          </form>
+
+          <div style={{ textAlign: 'center', marginTop: 24 }}>
+            <p style={{ fontSize: 13, color: '#718096' }}>
+              Already have an account?{' '}
+              <Link to="/login" style={{ color: '#e53e3e', fontWeight: 600, textDecoration: 'none' }}>Sign in →</Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
