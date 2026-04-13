@@ -1,4 +1,7 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : 'http://localhost:5000/api'
+
 const getToken = () => localStorage.getItem('safenet_token')
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -31,7 +34,6 @@ export const emergencyAPI = {
   report: (data: any) => request('/emergencies', { method: 'POST', body: JSON.stringify(data) }),
   list: () => request('/emergencies'),
   getById: (id: string) => request(`/emergencies/${id}`),
-  // resource_id = which specific resource the manager is sending
   updateStatus: (id: string, status: string, resource_id?: string) =>
     request(`/emergencies/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status, resource_id }) }),
   getStats: () => request('/emergencies/stats'),
