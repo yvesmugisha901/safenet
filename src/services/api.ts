@@ -31,7 +31,9 @@ export const emergencyAPI = {
   report: (data: any) => request('/emergencies', { method: 'POST', body: JSON.stringify(data) }),
   list: () => request('/emergencies'),
   getById: (id: string) => request(`/emergencies/${id}`),
-  updateStatus: (id: string, status: string) => request(`/emergencies/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  // resource_id = which specific resource the manager is sending
+  updateStatus: (id: string, status: string, resource_id?: string) =>
+    request(`/emergencies/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status, resource_id }) }),
   getStats: () => request('/emergencies/stats'),
 }
 
