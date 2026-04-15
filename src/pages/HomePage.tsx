@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const FEED = [
     { type: 'Medical emergency', loc: 'Kimironko', ago: '12s' },
@@ -11,24 +12,30 @@ const FEED = [
     { type: 'Security incident', loc: 'CBD Kigali', ago: '11m' },
 ]
 
-const STEPS = [
-    { n: '1', color: '#e53e3e', title: 'You report', desc: 'Describe the emergency and share your location. Takes about 30 seconds.' },
-    { n: '2', color: '#dd6b20', title: 'We find help', desc: 'SafeNet automatically finds the nearest available hospital, police or fire station.' },
-    { n: '3', color: '#d69e2e', title: 'They are alerted', desc: 'Resource managers receive instant notifications by SMS, email and in the app.' },
-    { n: '4', color: '#38a169', title: 'You track it', desc: 'Follow your report live as it goes from Waiting → Help coming → Resolved.' },
-]
-
 const AVATARS = ['M', 'A', 'J', 'F', 'C']
 
 export default function HomePage() {
     const { user } = useAuth()
+    const { t, i18n } = useTranslation()
     const [tick, setTick] = useState(0)
     const [navOpen, setNavOpen] = useState(false)
+    const isKinyarwanda = i18n.language === 'rw'
+
+    const toggleLanguage = () => {
+        i18n.changeLanguage(isKinyarwanda ? 'en' : 'rw')
+    }
 
     useEffect(() => {
-        const t = setInterval(() => setTick(n => (n + 1) % FEED.length), 3000)
-        return () => clearInterval(t)
+        const timer = setInterval(() => setTick(n => (n + 1) % FEED.length), 3000)
+        return () => clearInterval(timer)
     }, [])
+
+    const STEPS = [
+        { n: '1', color: '#e53e3e', title: t('step1_title'), desc: t('step1_desc') },
+        { n: '2', color: '#dd6b20', title: t('step2_title'), desc: t('step2_desc') },
+        { n: '3', color: '#d69e2e', title: t('step3_title'), desc: t('step3_desc') },
+        { n: '4', color: '#38a169', title: t('step4_title'), desc: t('step4_desc') },
+    ]
 
     return (
         <div style={{ fontFamily: "'Inter','Helvetica Neue',Arial,sans-serif", background: '#fff', color: '#1a1a2e', overflowX: 'hidden', lineHeight: 1.6 }}>
@@ -52,10 +59,11 @@ export default function HomePage() {
         .btn-red:hover{background:#c53030;transform:translateY(-1px)}
         .btn-outline{background:#fff;color:#4a5568;border:1.5px solid #e2e8f0;cursor:pointer;font-family:inherit;font-weight:500;transition:border-color .15s}
         .btn-outline:hover{border-color:#a0aec0;color:#1a1a2e}
+        .btn-lang{background:transparent;border:1.5px solid #e2e8f0;color:#4a5568;cursor:pointer;font-family:inherit;font-weight:600;font-size:13px;padding:7px 14px;border-radius:8px;transition:all .15s;white-space:nowrap}
+        .btn-lang:hover{border-color:#e53e3e;color:#e53e3e;background:#fff5f5}
         .nav-link{color:#718096;font-size:14px;font-weight:500;transition:color .15s}
         .nav-link:hover{color:#1a1a2e}
 
-        /* ── Responsive ── */
         .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
         .steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
         .roles-grid{display:grid;grid-template-columns:1fr 1.08fr 1fr;gap:20px}
@@ -64,8 +72,10 @@ export default function HomePage() {
         .nav-links{display:flex;gap:32px}
         .nav-actions{display:flex;gap:10px;align-items:center}
         .hero-card{display:block}
-        .mobile-menu{display:none;flex-direction:column;gap:2px;padding:16px;background:#fff;border-top:1px solid #edf2f7}
-        .hamburger-btn{display:none;background:none;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:18px;color:#4a5568;line-height:1}
+
+        /* ── Hamburger & Mobile menu ── */
+        .hamburger-btn{display:none;background:none;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:18px;color:#4a5568;line-height:1;position:relative;z-index:101}
+        .mobile-menu{display:flex;flex-direction:column;gap:2px;padding:16px;background:#fff;border-top:1px solid #edf2f7;position:relative;z-index:100}
 
         @media(max-width:900px){
           .hero-grid{grid-template-columns:1fr;gap:40px}
@@ -92,40 +102,51 @@ export default function HomePage() {
                         <span style={{ fontWeight: 800, fontSize: 18, color: '#1a1a2e', letterSpacing: '-0.03em' }}>SafeNet</span>
                     </div>
                     <div className="nav-links">
-                        <a href="#how" className="nav-link">How it works</a>
-                        <a href="#who" className="nav-link">Who it's for</a>
-                        <a href="#stories" className="nav-link">Stories</a>
+                        <a href="#how" className="nav-link">{t('nav_how')}</a>
+                        <a href="#who" className="nav-link">{t('nav_who')}</a>
+                        <a href="#stories" className="nav-link">{t('nav_stories')}</a>
                     </div>
                     <div className="nav-actions">
+                        {/* Language toggle */}
+                        <button className="btn-lang" onClick={toggleLanguage}>
+                            {isKinyarwanda ? '🇬🇧 English' : '🇷🇼 Kinyarwanda'}
+                        </button>
                         {user ? (
-                            <Link to="/dashboard"><button className="btn-red" style={{ padding: '9px 22px', borderRadius: 9, fontSize: 14 }}>My dashboard →</button></Link>
+                            <Link to="/dashboard"><button className="btn-red" style={{ padding: '9px 22px', borderRadius: 9, fontSize: 14 }}>{t('my_dashboard')} →</button></Link>
                         ) : (
                             <>
-                                <Link to="/login"><button className="btn-outline" style={{ padding: '9px 18px', borderRadius: 9, fontSize: 14 }}>Sign in</button></Link>
-                                <Link to="/register"><button className="btn-red" style={{ padding: '9px 22px', borderRadius: 9, fontSize: 14 }}>Get started free</button></Link>
+                                <Link to="/login"><button className="btn-outline" style={{ padding: '9px 18px', borderRadius: 9, fontSize: 14 }}>{t('sign_in')}</button></Link>
+                                <Link to="/register"><button className="btn-red" style={{ padding: '9px 22px', borderRadius: 9, fontSize: 14 }}>{t('get_started')}</button></Link>
                             </>
                         )}
                     </div>
-                    <button className="hamburger-btn" onClick={() => setNavOpen(v => !v)}>☰</button>
+                    <button className="hamburger-btn" onClick={() => setNavOpen(v => !v)} aria-label="Toggle menu">
+                        {navOpen ? '✕' : '☰'}
+                    </button>
                 </div>
-                {/* Mobile menu */}
+
+                {/* Mobile menu — React controls visibility, no display:none in CSS */}
                 {navOpen && (
                     <div className="mobile-menu">
-                        <a href="#how" className="nav-link" onClick={() => setNavOpen(false)} style={{ padding: '10px 0', display: 'block' }}>How it works</a>
-                        <a href="#who" className="nav-link" onClick={() => setNavOpen(false)} style={{ padding: '10px 0', display: 'block' }}>Who it's for</a>
-                        <a href="#stories" className="nav-link" onClick={() => setNavOpen(false)} style={{ padding: '10px 0', display: 'block' }}>Stories</a>
-                        <div style={{ display: 'flex', gap: 10, paddingTop: 12 }}>
+                        <a href="#how" className="nav-link" onClick={() => setNavOpen(false)} style={{ padding: '10px 0', display: 'block' }}>{t('nav_how')}</a>
+                        <a href="#who" className="nav-link" onClick={() => setNavOpen(false)} style={{ padding: '10px 0', display: 'block' }}>{t('nav_who')}</a>
+                        <a href="#stories" className="nav-link" onClick={() => setNavOpen(false)} style={{ padding: '10px 0', display: 'block' }}>{t('nav_stories')}</a>
+                        {/* Language toggle in mobile */}
+                        <button className="btn-lang" onClick={toggleLanguage} style={{ marginTop: 8, width: '100%', padding: '11px', borderRadius: 9, textAlign: 'center' }}>
+                            {isKinyarwanda ? '🇬🇧 Switch to English' : '🇷🇼 Hindura ururimi / Kinyarwanda'}
+                        </button>
+                        <div style={{ display: 'flex', gap: 10, paddingTop: 8 }}>
                             {user ? (
                                 <Link to="/dashboard" onClick={() => setNavOpen(false)} style={{ flex: 1 }}>
-                                    <button className="btn-red" style={{ width: '100%', padding: '11px', borderRadius: 9, fontSize: 14 }}>My dashboard →</button>
+                                    <button className="btn-red" style={{ width: '100%', padding: '11px', borderRadius: 9, fontSize: 14 }}>{t('my_dashboard')} →</button>
                                 </Link>
                             ) : (
                                 <>
                                     <Link to="/login" onClick={() => setNavOpen(false)} style={{ flex: 1 }}>
-                                        <button className="btn-outline" style={{ width: '100%', padding: '11px', borderRadius: 9, fontSize: 14 }}>Sign in</button>
+                                        <button className="btn-outline" style={{ width: '100%', padding: '11px', borderRadius: 9, fontSize: 14 }}>{t('sign_in')}</button>
                                     </Link>
                                     <Link to="/register" onClick={() => setNavOpen(false)} style={{ flex: 1 }}>
-                                        <button className="btn-red" style={{ width: '100%', padding: '11px', borderRadius: 9, fontSize: 14 }}>Get started</button>
+                                        <button className="btn-red" style={{ width: '100%', padding: '11px', borderRadius: 9, fontSize: 14 }}>{t('get_started')}</button>
                                     </Link>
                                 </>
                             )}
@@ -138,20 +159,18 @@ export default function HomePage() {
             <section style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 6% 72px' }}>
                 <div className="hero-grid">
                     <div>
-
                         <h1 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.03em', color: '#1a1a2e', marginBottom: 20 }}>
-                            Get emergency help to the right place,{' '}
-                            <span style={{ color: '#e53e3e' }}>faster.</span>
+                            {t('hero_title')} <span style={{ color: '#e53e3e' }}>{t('hero_title_accent')}</span>
                         </h1>
                         <p style={{ fontSize: 'clamp(15px,2vw,17px)', color: '#4a5568', lineHeight: 1.75, maxWidth: 440, marginBottom: 32 }}>
-                            Report any emergency in seconds. SafeNet instantly notifies the nearest available hospital, police or rescue team — automatically.
+                            {t('hero_subtitle')}
                         </p>
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 36 }}>
                             <Link to={user ? '/emergencies' : '/register'}>
-                                <button className="btn-red" style={{ padding: '13px 28px', borderRadius: 12, fontSize: 15, fontWeight: 700 }}>Report an emergency</button>
+                                <button className="btn-red" style={{ padding: '13px 28px', borderRadius: 12, fontSize: 15, fontWeight: 700 }}>{t('report_emergency')}</button>
                             </Link>
                             <a href="#how">
-                                <button className="btn-outline" style={{ padding: '13px 22px', borderRadius: 12, fontSize: 14 }}>How it works ↓</button>
+                                <button className="btn-outline" style={{ padding: '13px 22px', borderRadius: 12, fontSize: 14 }}>{t('how_it_works')} ↓</button>
                             </a>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -160,7 +179,7 @@ export default function HomePage() {
                                     <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: ['#e53e3e', '#dd6b20', '#d69e2e', '#38a169', '#3182ce'][i], border: '2px solid #fff', marginLeft: i ? -9 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff' }}>{letter}</div>
                                 ))}
                             </div>
-                            <p style={{ fontSize: 13, color: '#718096', lineHeight: 1.5 }}>Trusted by <strong style={{ color: '#4a5568' }}>citizens, hospitals, police & fire brigades</strong></p>
+                            <p style={{ fontSize: 13, color: '#718096', lineHeight: 1.5 }}>{t('trusted_by')}</p>
                         </div>
                     </div>
 
@@ -221,10 +240,10 @@ export default function HomePage() {
             <div style={{ background: '#fff5f5', borderTop: '1px solid #fed7d7', borderBottom: '1px solid #fed7d7', overflow: 'hidden', padding: '11px 0' }}>
                 <div className="ticker-track">
                     {[...Array(4)].flatMap((_, gi) =>
-                        ['Medical', 'Fire', 'Flood', 'Accident', 'Crime', 'Shelter', 'Police', 'Volunteer'].map((t, i) => (
+                        ['Medical', 'Fire', 'Flood', 'Accident', 'Crime', 'Shelter', 'Police', 'Volunteer'].map((type, i) => (
                             <span key={`${gi}-${i}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '0 24px', fontSize: 11, fontWeight: 600, color: '#c53030', letterSpacing: '.07em', textTransform: 'uppercase' }}>
                                 <span style={{ width: 4, height: 4, background: '#e53e3e', borderRadius: '50%', display: 'block', opacity: .6 }} />
-                                {t} emergency
+                                {type} emergency
                             </span>
                         ))
                     )}
@@ -236,10 +255,10 @@ export default function HomePage() {
                 <div style={{ maxWidth: 1100, margin: '0 auto' }}>
                     <div className="stats-grid">
                         {[
-                            { value: '< 30s', label: 'From report to alert', sub: 'average delivery time' },
-                            { value: '20 km', label: 'Auto-match radius', sub: 'finds nearest resources' },
-                            { value: '3 ways', label: 'Alert channels', sub: 'SMS, email and app' },
-                            { value: '24/7', label: 'Always available', sub: 'no downtime, ever' },
+                            { value: '< 30s', label: t('stat1_label'), sub: t('stat1_sub') },
+                            { value: '20 km', label: t('stat2_label'), sub: t('stat2_sub') },
+                            { value: '3', label: t('stat3_label'), sub: t('stat3_sub') },
+                            { value: '24/7', label: t('stat4_label'), sub: t('stat4_sub') },
                         ].map(s => (
                             <div key={s.label}>
                                 <p style={{ fontSize: 'clamp(28px,4vw,38px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', marginBottom: 4 }}>{s.value}</p>
@@ -254,9 +273,9 @@ export default function HomePage() {
             {/* ── HOW IT WORKS ── */}
             <section id="how" style={{ padding: '80px 6%', maxWidth: 1200, margin: '0 auto' }}>
                 <div style={{ textAlign: 'center', marginBottom: 48 }}>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#e53e3e', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 12 }}>Simple by design</p>
-                    <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.025em' }}>How SafeNet works</h2>
-                    <p style={{ fontSize: 15, color: '#718096', marginTop: 10, maxWidth: 440, margin: '10px auto 0' }}>Four steps from report to response — handled automatically</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#e53e3e', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 12 }}>{t('simple_by_design')}</p>
+                    <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.025em' }}>{t('how_safenet_works')}</h2>
+                    <p style={{ fontSize: 15, color: '#718096', marginTop: 10, maxWidth: 440, margin: '10px auto 0' }}>{t('how_subtitle')}</p>
                 </div>
                 <div className="steps-grid">
                     {STEPS.map(s => (
@@ -275,18 +294,30 @@ export default function HomePage() {
             <section id="who" style={{ background: '#f7fafc', padding: '80px 6%' }}>
                 <div style={{ maxWidth: 1200, margin: '0 auto' }}>
                     <div style={{ textAlign: 'center', marginBottom: 48 }}>
-                        <p style={{ fontSize: 11, fontWeight: 700, color: '#e53e3e', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 12 }}>Built for everyone</p>
-                        <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.025em' }}>One platform, three roles</h2>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: '#e53e3e', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 12 }}>{t('built_for_everyone')}</p>
+                        <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.025em' }}>{t('one_platform')}</h2>
                     </div>
                     <div className="roles-grid">
                         {[
-                            { initial: 'C', bg: '#3182ce', lightBg: '#ebf8ff', border: '#bee3f8', title: 'Community member', desc: 'For anyone who needs to report or track an emergency', perks: ['Report any emergency in 30 seconds', 'See nearest available resources', 'Track your report status live', 'Get notified when help is coming'] },
-                            { initial: 'R', bg: '#e53e3e', lightBg: '#fff5f5', border: '#feb2b2', title: 'Resource manager', featured: true, desc: 'For hospitals, police, fire brigades and rescue teams', perks: ['Receive instant alerts near you', 'Accept or reject with one tap', 'Toggle your availability live', 'See all incoming emergencies'] },
-                            { initial: 'A', bg: '#6b46c1', lightBg: '#faf5ff', border: '#d6bcfa', title: 'Administrator', desc: 'For city officials and platform administrators', perks: ['Full analytics and dashboard', 'Manage all users and resources', 'Complete audit log of activity', 'Monitor response times'] },
+                            {
+                                initial: 'C', bg: '#3182ce', lightBg: '#ebf8ff', border: '#bee3f8',
+                                title: t('role_community'), desc: t('role_community_desc'),
+                                perks: [t('perk_c1'), t('perk_c2'), t('perk_c3'), t('perk_c4')]
+                            },
+                            {
+                                initial: 'R', bg: '#e53e3e', lightBg: '#fff5f5', border: '#feb2b2', featured: true,
+                                title: t('role_resource'), desc: t('role_resource_desc'),
+                                perks: [t('perk_r1'), t('perk_r2'), t('perk_r3'), t('perk_r4')]
+                            },
+                            {
+                                initial: 'A', bg: '#6b46c1', lightBg: '#faf5ff', border: '#d6bcfa',
+                                title: t('role_admin'), desc: t('role_admin_desc'),
+                                perks: [t('perk_a1'), t('perk_a2'), t('perk_a3'), t('perk_a4')]
+                            },
                         ].map(r => (
-                            <div key={r.title} className="role-card" style={{ background: r.lightBg, border: `2px solid ${(r as any).featured ? r.bg : r.border}` }}>
-                                {(r as any).featured && (
-                                    <div style={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', background: r.bg, color: '#fff', fontSize: 10, fontWeight: 700, padding: '5px 14px', borderRadius: 999, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>Most active role</div>
+                            <div key={r.title} className="role-card" style={{ background: r.lightBg, border: `2px solid ${r.featured ? r.bg : r.border}` }}>
+                                {r.featured && (
+                                    <div style={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', background: r.bg, color: '#fff', fontSize: 10, fontWeight: 700, padding: '5px 14px', borderRadius: 999, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{t('most_active')}</div>
                                 )}
                                 <div style={{ width: 52, height: 52, borderRadius: 14, background: r.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 16, boxShadow: `0 4px 14px ${r.bg}40` }}>{r.initial}</div>
                                 <h3 style={{ fontSize: 18, fontWeight: 700, color: '#1a1a2e', marginBottom: 6 }}>{r.title}</h3>
@@ -311,23 +342,23 @@ export default function HomePage() {
             <section id="stories" style={{ padding: '80px 6%', maxWidth: 1200, margin: '0 auto' }}>
                 <div className="stories-grid">
                     <div>
-                        <p style={{ fontSize: 11, fontWeight: 700, color: '#e53e3e', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 14 }}>Real impact</p>
-                        <h2 style={{ fontSize: 'clamp(24px,3.5vw,36px)', fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.025em', lineHeight: 1.2, marginBottom: 14 }}>What people are saying</h2>
-                        <p style={{ fontSize: 14, color: '#718096', lineHeight: 1.7 }}>Stories from communities SafeNet serves across Kigali.</p>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: '#e53e3e', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 14 }}>{t('real_impact')}</p>
+                        <h2 style={{ fontSize: 'clamp(24px,3.5vw,36px)', fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.025em', lineHeight: 1.2, marginBottom: 14 }}>{t('what_people_say')}</h2>
+                        <p style={{ fontSize: 14, color: '#718096', lineHeight: 1.7 }}>{t('stories_subtitle')}</p>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                         {[
-                            { initial: 'M', bg: '#e53e3e', name: 'Marie K.', role: 'Community member, Kimironko', quote: 'I reported a road accident and within minutes the nearest clinic was already notified. The responder arrived in under 8 minutes. This platform genuinely saves lives.' },
-                            { initial: 'J', bg: '#3182ce', name: 'Insp. Jean P.', role: 'Police Resource Manager, Gasabo', quote: 'Before SafeNet, incident reports came by radio — easy to miss. Now I get an instant alert with the exact location. We handled 23 incidents last month through this platform.' },
-                            { initial: 'A', bg: '#38a169', name: 'Dr. Amina N.', role: 'Hospital Administrator, CHUK', quote: 'We update our availability and the system routes emergencies to us automatically. Three of our emergency patients last month came directly through SafeNet alerts.' },
-                        ].map(t => (
-                            <div key={t.name} className="quote-card">
-                                <p style={{ fontSize: 14, color: '#4a5568', lineHeight: 1.8, marginBottom: 16, fontStyle: 'italic' }}>"{t.quote}"</p>
+                            { initial: 'M', bg: '#e53e3e', name: 'Marie K.', role: t('testimonial1_role'), quote: t('testimonial1_quote') },
+                            { initial: 'J', bg: '#3182ce', name: 'Insp. Jean P.', role: t('testimonial2_role'), quote: t('testimonial2_quote') },
+                            { initial: 'A', bg: '#38a169', name: 'Dr. Amina N.', role: t('testimonial3_role'), quote: t('testimonial3_quote') },
+                        ].map(testimonial => (
+                            <div key={testimonial.name} className="quote-card">
+                                <p style={{ fontSize: 14, color: '#4a5568', lineHeight: 1.8, marginBottom: 16, fontStyle: 'italic' }}>"{testimonial.quote}"</p>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: '#fff', flexShrink: 0 }}>{t.initial}</div>
+                                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: testimonial.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: '#fff', flexShrink: 0 }}>{testimonial.initial}</div>
                                     <div>
-                                        <p style={{ fontSize: 14, fontWeight: 600, color: '#1a1a2e' }}>{t.name}</p>
-                                        <p style={{ fontSize: 12, color: '#a0aec0' }}>{t.role}</p>
+                                        <p style={{ fontSize: 14, fontWeight: 600, color: '#1a1a2e' }}>{testimonial.name}</p>
+                                        <p style={{ fontSize: 12, color: '#a0aec0' }}>{testimonial.role}</p>
                                     </div>
                                 </div>
                             </div>
@@ -341,19 +372,19 @@ export default function HomePage() {
                 <div style={{ maxWidth: 560, margin: '0 auto' }}>
                     <div style={{ width: 56, height: 56, background: 'rgba(229,62,62,.15)', border: '1px solid rgba(229,62,62,.25)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, margin: '0 auto 24px', fontWeight: 800, color: '#fc8181' }}>S</div>
                     <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: 16 }}>
-                        Your community deserves faster emergency response.
+                        {t('cta_title')}
                     </h2>
                     <p style={{ fontSize: 16, color: 'rgba(255,255,255,.45)', lineHeight: 1.7, marginBottom: 36 }}>
-                        Free for citizens. Built for the people who protect communities.
+                        {t('cta_subtitle')}
                     </p>
                     <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                         <Link to={user ? '/dashboard' : '/register'}>
                             <button className="btn-red" style={{ padding: '14px 32px', borderRadius: 12, fontSize: 15, fontWeight: 700 }}>
-                                {user ? 'Open my dashboard →' : "Get started — it's free →"}
+                                {user ? `${t('open_dashboard')} →` : `${t('get_started_free')} →`}
                             </button>
                         </Link>
                         <Link to="/login">
-                            <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 14, color: 'rgba(255,255,255,.35)', cursor: 'pointer', padding: '14px 0' }}>Already have an account?</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 14, color: 'rgba(255,255,255,.35)', cursor: 'pointer', padding: '14px 0' }}>{t('already_account')}</span>
                         </Link>
                     </div>
                 </div>
@@ -364,10 +395,10 @@ export default function HomePage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ width: 26, height: 26, background: '#e53e3e', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#fff', fontSize: 12 }}>S</div>
                     <span style={{ fontWeight: 700, color: 'rgba(255,255,255,.5)', fontSize: 14 }}>SafeNet</span>
-                    <span style={{ color: 'rgba(255,255,255,.2)', fontSize: 13 }}>· Smart Emergency Management · Kigali, Rwanda</span>
+                    <span style={{ color: 'rgba(255,255,255,.2)', fontSize: 13 }}>· {t('footer_tagline')} · Kigali, Rwanda</span>
                 </div>
-                <span style={{ color: 'rgba(255,255,255,.15)', fontSize: 12 }}>Available 24 / 7</span>
+                <span style={{ color: 'rgba(255,255,255,.15)', fontSize: 12 }}>{t('available_247')}</span>
             </footer>
         </div>
     )
-}
+} 
