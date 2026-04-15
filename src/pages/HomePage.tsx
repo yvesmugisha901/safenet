@@ -138,10 +138,7 @@ export default function HomePage() {
             <section style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 6% 72px' }}>
                 <div className="hero-grid">
                     <div>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 999, padding: '6px 14px', marginBottom: 24 }}>
-                            <span className="live-pulse" style={{ width: 7, height: 7, background: '#e53e3e', borderRadius: '50%', display: 'block' }} />
-                            <span style={{ fontSize: 12, fontWeight: 600, color: '#c53030', letterSpacing: '.03em' }}>Live emergency alerts active</span>
-                        </div>
+
                         <h1 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.03em', color: '#1a1a2e', marginBottom: 20 }}>
                             Get emergency help to the right place,{' '}
                             <span style={{ color: '#e53e3e' }}>faster.</span>
