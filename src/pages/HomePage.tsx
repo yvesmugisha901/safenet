@@ -3,6 +3,15 @@ import { useAuth } from '../context/AuthContext'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+// Inject Google Fonts via JS to avoid CSS @import conflict with Tailwind
+if (!document.getElementById('safenet-fonts')) {
+    const link = document.createElement('link')
+    link.id = 'safenet-fonts'
+    link.rel = 'stylesheet'
+    link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
+    document.head.appendChild(link)
+}
+
 const FEED = [
     { type: 'Medical emergency', loc: 'Kimironko', ago: '12s' },
     { type: 'Road accident', loc: 'KN 5 Road', ago: '1m' },
@@ -40,7 +49,6 @@ export default function HomePage() {
     return (
         <div style={{ fontFamily: "'Inter','Helvetica Neue',Arial,sans-serif", background: '#fff', color: '#1a1a2e', overflowX: 'hidden', lineHeight: 1.6 }}>
             <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         *{box-sizing:border-box}
         a{text-decoration:none;color:inherit}
         @keyframes fadeSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -63,7 +71,6 @@ export default function HomePage() {
         .btn-lang:hover{border-color:#e53e3e;color:#e53e3e;background:#fff5f5}
         .nav-link{color:#718096;font-size:14px;font-weight:500;transition:color .15s}
         .nav-link:hover{color:#1a1a2e}
-
         .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
         .steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
         .roles-grid{display:grid;grid-template-columns:1fr 1.08fr 1fr;gap:20px}
@@ -72,11 +79,8 @@ export default function HomePage() {
         .nav-links{display:flex;gap:32px}
         .nav-actions{display:flex;gap:10px;align-items:center}
         .hero-card{display:block}
-
-        /* ── Hamburger & Mobile menu ── */
         .hamburger-btn{display:none;background:none;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:18px;color:#4a5568;line-height:1;position:relative;z-index:101}
         .mobile-menu{display:flex;flex-direction:column;gap:2px;padding:16px;background:#fff;border-top:1px solid #edf2f7;position:relative;z-index:100}
-
         @media(max-width:900px){
           .hero-grid{grid-template-columns:1fr;gap:40px}
           .hero-card{display:none}
@@ -107,7 +111,6 @@ export default function HomePage() {
                         <a href="#stories" className="nav-link">{t('nav_stories')}</a>
                     </div>
                     <div className="nav-actions">
-                        {/* Language toggle */}
                         <button className="btn-lang" onClick={toggleLanguage}>
                             {isKinyarwanda ? '🇬🇧 English' : '🇷🇼 Kinyarwanda'}
                         </button>
@@ -125,15 +128,14 @@ export default function HomePage() {
                     </button>
                 </div>
 
-                {/* Mobile menu — React controls visibility, no display:none in CSS */}
+                {/* Mobile menu — controlled by React state only, no display:none in CSS */}
                 {navOpen && (
                     <div className="mobile-menu">
                         <a href="#how" className="nav-link" onClick={() => setNavOpen(false)} style={{ padding: '10px 0', display: 'block' }}>{t('nav_how')}</a>
                         <a href="#who" className="nav-link" onClick={() => setNavOpen(false)} style={{ padding: '10px 0', display: 'block' }}>{t('nav_who')}</a>
                         <a href="#stories" className="nav-link" onClick={() => setNavOpen(false)} style={{ padding: '10px 0', display: 'block' }}>{t('nav_stories')}</a>
-                        {/* Language toggle in mobile */}
                         <button className="btn-lang" onClick={toggleLanguage} style={{ marginTop: 8, width: '100%', padding: '11px', borderRadius: 9, textAlign: 'center' }}>
-                            {isKinyarwanda ? '🇬🇧 Switch to English' : '🇷🇼 Hindura ururimi / Kinyarwanda'}
+                            {isKinyarwanda ? '🇬🇧 Switch to English' : '🇷🇼 Hindura / Kinyarwanda'}
                         </button>
                         <div style={{ display: 'flex', gap: 10, paddingTop: 8 }}>
                             {user ? (
@@ -183,7 +185,6 @@ export default function HomePage() {
                         </div>
                     </div>
 
-                    {/* Hero dispatch card — hidden on mobile */}
                     <div className="hero-card" style={{ background: '#1a1a2e', borderRadius: 20, overflow: 'hidden', boxShadow: '0 32px 80px rgba(26,26,46,.3)' }}>
                         <div style={{ background: 'rgba(255,255,255,.04)', borderBottom: '1px solid rgba(255,255,255,.07)', padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
                             <div style={{ display: 'flex', gap: 6 }}>
@@ -300,7 +301,7 @@ export default function HomePage() {
                     <div className="roles-grid">
                         {[
                             {
-                                initial: 'C', bg: '#3182ce', lightBg: '#ebf8ff', border: '#bee3f8',
+                                initial: 'C', bg: '#3182ce', lightBg: '#ebf8ff', border: '#bee3f8', featured: false,
                                 title: t('role_community'), desc: t('role_community_desc'),
                                 perks: [t('perk_c1'), t('perk_c2'), t('perk_c3'), t('perk_c4')]
                             },
@@ -310,7 +311,7 @@ export default function HomePage() {
                                 perks: [t('perk_r1'), t('perk_r2'), t('perk_r3'), t('perk_r4')]
                             },
                             {
-                                initial: 'A', bg: '#6b46c1', lightBg: '#faf5ff', border: '#d6bcfa',
+                                initial: 'A', bg: '#6b46c1', lightBg: '#faf5ff', border: '#d6bcfa', featured: false,
                                 title: t('role_admin'), desc: t('role_admin_desc'),
                                 perks: [t('perk_a1'), t('perk_a2'), t('perk_a3'), t('perk_a4')]
                             },
@@ -401,4 +402,4 @@ export default function HomePage() {
             </footer>
         </div>
     )
-} 
+}
