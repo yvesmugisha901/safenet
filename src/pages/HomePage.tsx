@@ -112,7 +112,7 @@ export default function HomePage() {
                     </div>
                     <div className="nav-actions">
                         <button className="btn-lang" onClick={toggleLanguage}>
-                            {isKinyarwanda ? '🇬🇧 English' : '🇷🇼 Kinyarwanda'}
+                            {isKinyarwanda ? 'EN' : '🇷🇼'}
                         </button>
                         {user ? (
                             <Link to="/dashboard"><button className="btn-red" style={{ padding: '9px 22px', borderRadius: 9, fontSize: 14 }}>{t('my_dashboard')} →</button></Link>
