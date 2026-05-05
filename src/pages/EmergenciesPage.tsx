@@ -29,7 +29,7 @@ export default function EmergenciesPage() {
     <div className="p-6 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-white text-2xl font-bold">
+          <h1 className="text-gray-900 text-2xl font-bold">
             {user?.role === 'user' ? 'My Reports' : 'Emergencies'}
           </h1>
           <p className="text-gray-400 text-sm mt-0.5">
